@@ -93,7 +93,7 @@ function generateWarmUp(eligible: Exercise[]): WorkoutPhase {
     type: 'circuit',
     name: 'Warm-Up',
     rounds: 1,
-    restBetweenExercises: 10,
+    restBetweenExercises: 0,
     restBetweenRounds: 0,
     exercises,
   }
@@ -123,7 +123,7 @@ function generateCoolDown(eligible: Exercise[], _usedMuscles: MuscleGroup[]): Wo
     type: 'circuit',
     name: 'Cool-Down',
     rounds: 1,
-    restBetweenExercises: 5,
+    restBetweenExercises: 0,
     restBetweenRounds: 0,
     exercises,
   }
@@ -188,7 +188,7 @@ function generateMainWorkout(
       type: 'circuit',
       name: `Circuit ${circuitNum} - ${circuitNames[(circuitNum - 1) % circuitNames.length]}`,
       rounds: 3,
-      restBetweenExercises: 15,
+      restBetweenExercises: 0,
       restBetweenRounds: 60,
       exercises: circuitExercises,
     }

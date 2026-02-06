@@ -61,6 +61,7 @@ export default function ActiveWorkoutPage() {
   const [isComplete, setIsComplete] = useState(false)
   const [exercisesCompleted, setExercisesCompleted] = useState(0)
   const [exercisesSkipped, setExercisesSkipped] = useState(0)
+  const [showQuitConfirm, setShowQuitConfirm] = useState(false)
 
   const stopwatch = useStopwatch()
 
@@ -240,17 +241,56 @@ export default function ActiveWorkoutPage() {
 
   return (
     <div className="min-h-screen flex flex-col">
+      {/* Quit confirmation overlay */}
+      <AnimatePresence>
+        {showQuitConfirm && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-surface-0/95 flex flex-col items-center justify-center px-6"
+          >
+            <p className="font-heading text-lg font-bold text-primary-500 tracking-widest uppercase mb-2">ABORT MISSION?</p>
+            <p className="text-xs text-text-muted font-mono mb-8 text-center">PROGRESS WILL BE LOST</p>
+            <div className="flex gap-3 w-full max-w-xs">
+              <button
+                onClick={() => setShowQuitConfirm(false)}
+                className="flex-1 py-3 bg-surface-2 text-text-secondary font-heading font-bold text-xs tracking-wider border border-surface-3 uppercase"
+              >
+                CONTINUE
+              </button>
+              <button
+                onClick={() => { sessionStorage.removeItem('activeWorkout'); navigate('/') }}
+                className="flex-1 py-3 bg-primary-600 text-white font-heading font-bold text-xs tracking-wider border border-primary-500 uppercase"
+              >
+                QUIT
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Progress bar */}
       <div className="px-4 pt-3">
         <div className="flex items-center justify-between mb-1">
-          <span className={cn(
-            'text-[10px] font-heading font-bold tracking-widest px-2 py-0.5 border uppercase',
-            current.phase === 'Warm-Up' ? 'border-star-gold text-star-gold' :
-            current.phase === 'Cool-Down' ? 'border-khaki text-khaki' :
-            'border-primary-500 text-primary-500'
-          )}>
-            {current.phase}
-          </span>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowQuitConfirm(true)}
+              className="w-7 h-7 flex items-center justify-center text-text-muted hover:text-primary-500 transition-colors"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M19 12H5M12 19l-7-7 7-7" />
+              </svg>
+            </button>
+            <span className={cn(
+              'text-[10px] font-heading font-bold tracking-widest px-2 py-0.5 border uppercase',
+              current.phase === 'Warm-Up' ? 'border-star-gold text-star-gold' :
+              current.phase === 'Cool-Down' ? 'border-khaki text-khaki' :
+              'border-primary-500 text-primary-500'
+            )}>
+              {current.phase}
+            </span>
+          </div>
           <span className="text-xs text-text-muted font-mono">{formatSeconds(stopwatch.seconds)}</span>
         </div>
         <div className="h-1 bg-surface-3 overflow-hidden">

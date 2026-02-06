@@ -40,14 +40,15 @@ interface StickFigureProps {
 }
 
 export default function StickFigure({ animationId, playing = true, size = 160, color = '#DC2626' }: StickFigureProps) {
-  const [pose, setPose] = useState<Pose | null>(null)
   const anim: ExerciseAnimation | undefined = animationRegistry[animationId]
+  const [pose, setPose] = useState<Pose | null>(() => anim ? anim.poses[0] : null)
 
   useEffect(() => {
-    if (!anim || !playing) {
-      if (anim) setPose(anim.poses[0])
-      return
-    }
+    if (anim) setPose(anim.poses[0])
+  }, [animationId]) // eslint-disable-line
+
+  useEffect(() => {
+    if (!anim || !playing) return
 
     let animFrame: number
     const startTime = performance.now()
