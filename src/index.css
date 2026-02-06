@@ -1,0 +1,154 @@
+@import "tailwindcss";
+
+@theme {
+  /* Industrial black base */
+  --color-surface-0: #0A0A0A;
+  --color-surface-1: #111111;
+  --color-surface-2: #1A1A1A;
+  --color-surface-3: #2A2A2A;
+  --color-surface-4: #3A3A3A;
+
+  /* Soviet red */
+  --color-primary-50: #1A0808;
+  --color-primary-100: #2D0E0E;
+  --color-primary-200: #4A1515;
+  --color-primary-300: #7A1E1E;
+  --color-primary-400: #A52020;
+  --color-primary-500: #C41E1E;
+  --color-primary-600: #DC2626;
+  --color-primary-700: #EF4444;
+  --color-primary-800: #F87171;
+  --color-primary-900: #FCA5A5;
+
+  /* Star gold accent */
+  --color-accent-300: #D4A017;
+  --color-accent-400: #B8860B;
+  --color-accent-500: #D4A017;
+  --color-accent-600: #B8860B;
+
+  /* Institutional green */
+  --color-success-400: #4ADE80;
+  --color-success-500: #22C55E;
+
+  /* Warning amber */
+  --color-warning: #F59E0B;
+
+  /* Text - cold, institutional */
+  --color-text-primary: #E5E5E5;
+  --color-text-secondary: #A3A3A3;
+  --color-text-muted: #6B6B6B;
+  --color-text-ghost: #404040;
+
+  /* Borders - harsh, industrial */
+  --color-border: #2A2A2A;
+  --color-border-strong: #3A3A3A;
+  --color-border-red: #4A1515;
+
+  /* Khaki / military olive */
+  --color-khaki: #8B7D5C;
+  --color-olive: #5C6B3A;
+
+  /* Fonts */
+  --font-heading: 'Oswald', 'Impact', sans-serif;
+  --font-body: 'Oswald', sans-serif;
+  --font-mono: 'Share Tech Mono', monospace;
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-body);
+  font-weight: 400;
+  background: var(--color-surface-0);
+  color: var(--color-text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overscroll-behavior: none;
+}
+
+/* Noise texture overlay */
+#root {
+  position: relative;
+  background: var(--color-surface-0);
+}
+
+#root::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  opacity: 0.03;
+  pointer-events: none;
+  z-index: 9999;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 256px 256px;
+}
+
+.hide-scrollbar::-webkit-scrollbar { display: none; }
+.hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Soviet card - sharp, institutional */
+.card-soviet {
+  background: var(--color-surface-1);
+  border: 1px solid var(--color-border);
+}
+
+/* Red stripe accent on left */
+.stripe-red {
+  border-left: 3px solid var(--color-primary-500);
+}
+
+/* Stencil-style section headers */
+.section-header {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  font-size: 11px;
+  color: var(--color-text-muted);
+}
+
+/* Military input */
+.input-military {
+  background: var(--color-surface-0);
+  border: 1px solid var(--color-border-strong);
+  color: var(--color-text-primary);
+  font-family: var(--font-mono);
+}
+.input-military:focus {
+  border-color: var(--color-primary-500);
+  outline: none;
+}
+
+/* Scanline effect for special elements */
+.scanlines {
+  position: relative;
+  overflow: hidden;
+}
+.scanlines::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.08) 2px,
+    rgba(0, 0, 0, 0.08) 4px
+  );
+}
+
+/* Scrollbar */
+@media (pointer: fine) {
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--color-surface-3); }
+}

@@ -1,0 +1,25 @@
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import AppShell from './components/layout/AppShell'
+import HomePage from './pages/HomePage'
+import ActiveWorkoutPage from './pages/ActiveWorkoutPage'
+import HistoryPage from './pages/HistoryPage'
+import FavoritesPage from './pages/FavoritesPage'
+import SettingsPage from './pages/SettingsPage'
+import ExerciseBrowserPage from './pages/ExerciseBrowserPage'
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route element={<AppShell />}>
+          <Route index element={<HomePage />} />
+          <Route path="workout" element={<ActiveWorkoutPage />} />
+          <Route path="history" element={<HistoryPage />} />
+          <Route path="favorites" element={<FavoritesPage />} />
+          <Route path="settings" element={<SettingsPage />} />
+          <Route path="exercises" element={<ExerciseBrowserPage />} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
+  )
+}
