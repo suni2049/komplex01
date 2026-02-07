@@ -82,6 +82,10 @@ export default function ActiveWorkoutPage() {
   )
 
   useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [])
+
+  useEffect(() => {
     if (workout) stopwatch.start()
     return () => { stopwatch.pause() }
   }, []) // eslint-disable-line
@@ -190,37 +194,77 @@ export default function ActiveWorkoutPage() {
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
+        transition={{ duration: 0.4 }}
         className="flex flex-col items-center justify-center min-h-screen px-6 text-center"
       >
-        <div className="border-2 border-primary-500 p-8 mb-6 w-full max-w-sm">
-          <div className="text-primary-500 text-5xl font-heading font-bold mb-2">★</div>
-          <h1 className="font-heading text-2xl font-bold tracking-widest text-primary-500 mb-1">
+        <motion.div
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ delay: 0.15, type: 'spring', stiffness: 200, damping: 18 }}
+          className="border-2 border-primary-500 p-8 mb-6 w-full max-w-sm"
+          style={{ boxShadow: '0 0 25px rgba(196, 30, 30, 0.2), inset 0 0 15px rgba(196, 30, 30, 0.05)' }}
+        >
+          <motion.div
+            initial={{ scale: 0, rotate: -180 }}
+            animate={{ scale: 1, rotate: 0 }}
+            transition={{ delay: 0.3, type: 'spring', stiffness: 250, damping: 15 }}
+            className="text-primary-500 text-5xl font-heading font-bold mb-2"
+            style={{ textShadow: '0 0 20px rgba(196, 30, 30, 0.5)' }}
+          >★</motion.div>
+          <motion.h1
+            initial={{ y: 10, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.4 }}
+            className="font-heading text-2xl font-bold tracking-widest text-primary-500 mb-1"
+          >
             MISSION COMPLETE
-          </h1>
-          <p className="text-text-muted font-mono text-xs tracking-wider">PROTOCOL EXECUTED SUCCESSFULLY</p>
-        </div>
+          </motion.h1>
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
+            className="text-text-muted font-mono text-xs tracking-wider"
+          >PROTOCOL EXECUTED SUCCESSFULLY</motion.p>
+        </motion.div>
 
         <div className="grid grid-cols-3 gap-3 w-full max-w-sm mb-8">
-          <div className="card-soviet p-3 text-center">
-            <p className="font-mono text-xl font-bold text-primary-500">
-              {formatSeconds(stopwatch.seconds)}
-            </p>
-            <p className="text-[10px] text-text-muted font-mono tracking-wider">DURATION</p>
-          </div>
-          <div className="card-soviet p-3 text-center">
-            <p className="font-mono text-xl font-bold text-primary-500">{exercisesCompleted}</p>
-            <p className="text-[10px] text-text-muted font-mono tracking-wider">COMPLETED</p>
-          </div>
-          <div className="card-soviet p-3 text-center">
-            <p className="font-mono text-xl font-bold text-text-ghost">{exercisesSkipped}</p>
-            <p className="text-[10px] text-text-muted font-mono tracking-wider">SKIPPED</p>
-          </div>
+          {[
+            { value: formatSeconds(stopwatch.seconds), label: 'DURATION', highlight: true },
+            { value: String(exercisesCompleted), label: 'COMPLETED', highlight: true },
+            { value: String(exercisesSkipped), label: 'SKIPPED', highlight: false },
+          ].map((stat, i) => (
+            <motion.div
+              key={stat.label}
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.55 + i * 0.1, type: 'spring', stiffness: 250, damping: 20 }}
+              className="card-soviet p-3 text-center"
+            >
+              <p className={cn('font-mono text-xl font-bold', stat.highlight ? 'text-primary-500' : 'text-text-ghost')}>
+                {stat.value}
+              </p>
+              <p className="text-[10px] text-text-muted font-mono tracking-wider">{stat.label}</p>
+            </motion.div>
+          ))}
         </div>
 
-        <div className="flex flex-col gap-3 w-full max-w-sm">
+        <motion.div
+          initial={{ y: 15, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.85 }}
+          className="flex flex-col gap-3 w-full max-w-sm"
+        >
           <motion.button
             whileTap={{ scale: 0.97 }}
             onClick={handleFavoriteAndComplete}
+            animate={{
+              boxShadow: [
+                '0 0 0px rgba(220, 38, 38, 0)',
+                '0 0 16px rgba(220, 38, 38, 0.35)',
+                '0 0 0px rgba(220, 38, 38, 0)',
+              ],
+            }}
+            transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
             className="w-full py-4 bg-primary-600 text-white font-heading font-bold tracking-widest text-sm border border-primary-500"
           >
             ★ ARCHIVE TO FAVORITES
@@ -231,7 +275,7 @@ export default function ActiveWorkoutPage() {
           >
             LOG & DISMISS
           </button>
-        </div>
+        </motion.div>
       </motion.div>
     )
   }
@@ -240,7 +284,12 @@ export default function ActiveWorkoutPage() {
   const progress = (currentIndex + 1) / totalExercises
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+      className="min-h-screen flex flex-col"
+    >
       {/* Quit confirmation overlay */}
       <AnimatePresence>
         {showQuitConfirm && (
@@ -250,9 +299,24 @@ export default function ActiveWorkoutPage() {
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 bg-surface-0/95 flex flex-col items-center justify-center px-6"
           >
-            <p className="font-heading text-lg font-bold text-primary-500 tracking-widest uppercase mb-2">ABORT MISSION?</p>
-            <p className="text-xs text-text-muted font-mono mb-8 text-center">PROGRESS WILL BE LOST</p>
-            <div className="flex gap-3 w-full max-w-xs">
+            <motion.p
+              initial={{ y: -10, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.1 }}
+              className="font-heading text-lg font-bold text-primary-500 tracking-widest uppercase mb-2"
+            >ABORT MISSION?</motion.p>
+            <motion.p
+              initial={{ y: -6, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.2 }}
+              className="text-xs text-text-muted font-mono mb-8 text-center"
+            >PROGRESS WILL BE LOST</motion.p>
+            <motion.div
+              initial={{ y: 10, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.3 }}
+              className="flex gap-3 w-full max-w-xs"
+            >
               <button
                 onClick={() => setShowQuitConfirm(false)}
                 className="flex-1 py-3 bg-surface-2 text-text-secondary font-heading font-bold text-xs tracking-wider border border-surface-3 uppercase"
@@ -265,7 +329,7 @@ export default function ActiveWorkoutPage() {
               >
                 QUIT
               </button>
-            </div>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -296,8 +360,9 @@ export default function ActiveWorkoutPage() {
         <div className="h-1 bg-surface-3 overflow-hidden">
           <motion.div
             className="h-full bg-primary-500"
+            style={{ boxShadow: '0 0 8px rgba(196, 30, 30, 0.6), 0 0 2px rgba(220, 38, 38, 0.8)' }}
             animate={{ width: `${progress * 100}%` }}
-            transition={{ duration: 0.3 }}
+            transition={{ duration: 0.3, ease: 'easeOut' }}
           />
         </div>
         <div className="flex justify-between mt-1">
@@ -318,19 +383,39 @@ export default function ActiveWorkoutPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
             className="fixed inset-0 z-40 bg-surface-0/95 flex flex-col items-center justify-center"
           >
-            <p className="text-sm font-heading font-bold text-text-muted tracking-widest uppercase mb-2">STAND BY</p>
-            <p className="font-mono text-7xl font-bold text-primary-500 mb-4">{timer.secondsLeft}</p>
-            <p className="text-xs text-text-muted font-mono mb-8 uppercase">
+            <motion.p
+              initial={{ y: -8, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.15 }}
+              className="text-sm font-heading font-bold text-text-muted tracking-widest uppercase mb-2"
+            >STAND BY</motion.p>
+            <motion.p
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.2, type: 'spring', stiffness: 200, damping: 15 }}
+              className="font-mono text-7xl font-bold text-primary-500 mb-4"
+              style={{ textShadow: '0 0 20px rgba(196, 30, 30, 0.4)' }}
+            >{timer.secondsLeft}</motion.p>
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3 }}
+              className="text-xs text-text-muted font-mono mb-8 uppercase"
+            >
               NEXT: {flatExercises[currentIndex + 1]?.exercise.exercise.name}
-            </p>
-            <button
+            </motion.p>
+            <motion.button
+              initial={{ y: 10, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.4 }}
               onClick={() => handleNext(false)}
               className="px-8 py-3 bg-surface-2 text-text-primary font-heading font-bold text-sm tracking-wider border border-surface-3 uppercase"
             >
               SKIP REST
-            </button>
+            </motion.button>
           </motion.div>
         )}
       </AnimatePresence>
@@ -340,50 +425,80 @@ export default function ActiveWorkoutPage() {
         <AnimatePresence mode="wait">
           <motion.div
             key={currentIndex}
-            initial={{ opacity: 0, x: 80 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -80 }}
-            transition={{ duration: 0.25 }}
+            initial={{ opacity: 0, x: 60, scale: 0.96 }}
+            animate={{ opacity: 1, x: 0, scale: 1 }}
+            exit={{ opacity: 0, x: -60, scale: 0.96 }}
+            transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
             className="w-full flex flex-col items-center"
           >
             {/* Stick figure */}
-            <div className="mb-4 bg-surface-1 p-4 border-2 border-surface-3">
+            <motion.div
+              className="mb-4 bg-surface-1 p-4 border-2 border-surface-3 relative"
+              animate={{
+                boxShadow: [
+                  '0 0 0px rgba(196, 30, 30, 0), inset 0 0 0px rgba(196, 30, 30, 0)',
+                  '0 0 20px rgba(196, 30, 30, 0.25), inset 0 0 12px rgba(196, 30, 30, 0.08)',
+                  '0 0 0px rgba(196, 30, 30, 0), inset 0 0 0px rgba(196, 30, 30, 0)',
+                ],
+              }}
+              transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+            >
               <StickFigure
                 animationId={current.exercise.exercise.animationId}
                 playing={!isPaused}
                 size={180}
               />
-            </div>
+            </motion.div>
 
             {/* Exercise name */}
-            <h2 className="font-heading text-xl font-bold text-center text-text-primary tracking-wider uppercase mb-1">
+            <motion.h2
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.08, duration: 0.25 }}
+              className="font-heading text-xl font-bold text-center text-text-primary tracking-wider uppercase mb-1"
+            >
               {current.exercise.exercise.name}
-            </h2>
+            </motion.h2>
 
             {/* Rep/time info */}
-            <div className="text-center mb-3">
+            <motion.div
+              className="text-center mb-3"
+              initial={{ scale: 0.85, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.15, type: 'spring', stiffness: 300, damping: 20 }}
+            >
               {current.exercise.durationSeconds ? (
-                <p className="font-mono text-4xl font-bold text-primary-500">
+                <p className="font-mono text-4xl font-bold text-primary-500" style={{ textShadow: '0 0 12px rgba(196, 30, 30, 0.3)' }}>
                   {timer.secondsLeft}S
                 </p>
               ) : (
-                <p className="font-mono text-4xl font-bold text-primary-500">
+                <p className="font-mono text-4xl font-bold text-primary-500" style={{ textShadow: '0 0 12px rgba(196, 30, 30, 0.3)' }}>
                   {current.exercise.reps}{current.exercise.perSide ? ' EACH' : ' REPS'}
                 </p>
               )}
-            </div>
+            </motion.div>
 
             {/* Category badges */}
-            <div className="flex gap-1.5 mb-4">
+            <motion.div
+              className="flex gap-1.5 mb-4"
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2, duration: 0.25 }}
+            >
               {current.exercise.exercise.primaryMuscles.slice(0, 3).map(m => (
                 <span key={m} className="text-[10px] bg-primary-900 text-primary-400 px-1.5 py-0.5 border border-primary-700 font-mono uppercase">
                   {m.replace('-', ' ')}
                 </span>
               ))}
-            </div>
+            </motion.div>
 
             {/* Instructions */}
-            <div className="w-full card-soviet p-4">
+            <motion.div
+              className="w-full card-soviet p-4"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.25, duration: 0.3 }}
+            >
               <p className="section-header mb-2">// EXECUTION PROTOCOL</p>
               {current.exercise.exercise.instructions.map((step, i) => (
                 <div key={i} className="flex gap-2 mb-1.5">
@@ -391,7 +506,7 @@ export default function ActiveWorkoutPage() {
                   <p className="text-sm text-text-secondary leading-snug">{step}</p>
                 </div>
               ))}
-            </div>
+            </motion.div>
           </motion.div>
         </AnimatePresence>
       </div>
@@ -425,6 +540,14 @@ export default function ActiveWorkoutPage() {
             }
           }}
           whileTap={{ scale: 0.95 }}
+          animate={{
+            boxShadow: [
+              '0 0 0px rgba(220, 38, 38, 0)',
+              '0 0 14px rgba(220, 38, 38, 0.4)',
+              '0 0 0px rgba(220, 38, 38, 0)',
+            ],
+          }}
+          transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
           className="flex-[2] py-3.5 bg-primary-600 text-white font-heading font-bold text-sm tracking-widest border border-primary-500 uppercase"
         >
           {current.exercise.durationSeconds && !timer.isRunning && timer.secondsLeft > 0
@@ -432,6 +555,6 @@ export default function ActiveWorkoutPage() {
             : 'DONE ✓'}
         </motion.button>
       </div>
-    </div>
+    </motion.div>
   )
 }

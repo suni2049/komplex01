@@ -73,8 +73,11 @@ export default function StickFigure({ animationId, playing = true, size = 160, c
 
   const sw = 5
   const headR = 11
-  const shoulderY = pose.headY + 28
-  const shoulderX = (pose.headX + pose.torsoEndX) / 2
+  const torsoStartX = pose.headX
+  const torsoStartY = pose.headY + headR
+  const shoulderT = 0.28
+  const shoulderX = torsoStartX + (pose.torsoEndX - torsoStartX) * shoulderT
+  const shoulderY = torsoStartY + (pose.torsoEndY - torsoStartY) * shoulderT
 
   return (
     <svg

@@ -258,6 +258,14 @@ export default function HomePage() {
               <motion.button
                 onClick={handleStart}
                 whileTap={{ scale: 0.97 }}
+                animate={{
+                  boxShadow: [
+                    '0 0 0px rgba(220, 38, 38, 0)',
+                    '0 0 16px rgba(220, 38, 38, 0.45)',
+                    '0 0 0px rgba(220, 38, 38, 0)',
+                  ],
+                }}
+                transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
                 className="flex-1 py-3 text-xs font-heading font-bold tracking-wider bg-primary-600 text-white border border-primary-500 uppercase"
               >
                 ★ COMMENCE
