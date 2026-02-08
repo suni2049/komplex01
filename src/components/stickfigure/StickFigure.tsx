@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef, useCallback } from 'react'
 import type { Pose, ExerciseAnimation } from '../../types/animation'
 import { animationRegistry } from './animations'
 
@@ -42,18 +42,23 @@ interface StickFigureProps {
 export default function StickFigure({ animationId, playing = true, size = 160, color = 'var(--color-primary-600)' }: StickFigureProps) {
   const anim: ExerciseAnimation | undefined = animationRegistry[animationId]
   const [pose, setPose] = useState<Pose | null>(() => anim ? anim.poses[0] : null)
+  const rafRef = useRef<number>(0)
+  const playingRef = useRef(playing)
+  playingRef.current = playing
 
+  // Reset pose when animation changes
   useEffect(() => {
     if (anim) setPose(anim.poses[0])
   }, [animationId]) // eslint-disable-line
 
-  useEffect(() => {
-    if (!anim || !playing) return
+  const animate = useCallback(() => {
+    if (!anim || !playingRef.current) return
 
-    let animFrame: number
     const startTime = performance.now()
 
-    function tick(now: number) {
+    function tick() {
+      if (!playingRef.current) return
+      const now = performance.now()
       const elapsed = (now - startTime) % anim!.duration
       const totalPoses = anim!.poses.length
       const segmentDuration = anim!.duration / totalPoses
@@ -62,12 +67,24 @@ export default function StickFigure({ animationId, playing = true, size = 160, c
       const currentPose = anim!.poses[segmentIndex % totalPoses]
       const nextPose = anim!.poses[(segmentIndex + 1) % totalPoses]
       setPose(interpolatePose(currentPose, nextPose, easeInOut(segmentProgress)))
-      animFrame = requestAnimationFrame(tick)
+      rafRef.current = requestAnimationFrame(tick)
     }
 
-    animFrame = requestAnimationFrame(tick)
-    return () => cancelAnimationFrame(animFrame)
-  }, [anim, playing])
+    rafRef.current = requestAnimationFrame(tick)
+  }, [anim])
+
+  // Start/stop animation
+  useEffect(() => {
+    if (playing && anim) {
+      animate()
+    }
+    return () => {
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current)
+        rafRef.current = 0
+      }
+    }
+  }, [playing, animationId, animate]) // eslint-disable-line
 
   if (!pose) return null
 

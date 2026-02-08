@@ -10,6 +10,34 @@ const DIFFICULTY_LEVEL: Record<Difficulty, number> = {
   advanced: 3,
 }
 
+/** How many reps/seconds to scale based on difficulty */
+const VOLUME_SCALE: Record<Difficulty, number> = {
+  beginner: 1.0,
+  intermediate: 1.2,
+  advanced: 1.4,
+}
+
+/** Circuit rounds per difficulty */
+const ROUNDS_BY_DIFFICULTY: Record<Difficulty, number> = {
+  beginner: 2,
+  intermediate: 3,
+  advanced: 4,
+}
+
+/** Rest between rounds (seconds) — harder = less rest */
+const REST_BETWEEN_ROUNDS: Record<Difficulty, number> = {
+  beginner: 60,
+  intermediate: 45,
+  advanced: 30,
+}
+
+/** Max exercises per circuit */
+const EXERCISES_PER_CIRCUIT: Record<Difficulty, number> = {
+  beginner: 4,
+  intermediate: 5,
+  advanced: 6,
+}
+
 const CATEGORY_WEIGHTS: Record<ExerciseCategory | 'balanced', Record<ExerciseCategory, number>> = {
   balanced: { push: 0.25, pull: 0.20, legs: 0.25, core: 0.20, cardio: 0.10, flexibility: 0 },
   push: { push: 0.40, pull: 0.10, legs: 0.15, core: 0.20, cardio: 0.10, flexibility: 0.05 },
@@ -48,15 +76,16 @@ function estimateCircuitTime(block: CircuitBlock): number {
   return (roundTime * block.rounds + totalRest)
 }
 
-function makeWorkoutExercise(exercise: Exercise): WorkoutExercise {
+function makeWorkoutExercise(exercise: Exercise, difficulty: Difficulty): WorkoutExercise {
   const scheme = exercise.repScheme
+  const scale = VOLUME_SCALE[difficulty]
   switch (scheme.type) {
     case 'reps':
-      return { exercise, reps: scheme.defaultReps }
+      return { exercise, reps: Math.round(scheme.defaultReps * scale) }
     case 'timed':
-      return { exercise, durationSeconds: scheme.defaultSeconds }
+      return { exercise, durationSeconds: Math.round(scheme.defaultSeconds * scale) }
     case 'each-side':
-      return { exercise, reps: scheme.defaultReps, perSide: true }
+      return { exercise, reps: Math.round(scheme.defaultReps * scale), perSide: true }
   }
 }
 
@@ -82,7 +111,7 @@ function generateWarmUp(eligible: Exercise[]): WorkoutPhase {
   selected.push(...dynamic)
 
   const exercises = selected.slice(0, 5).map(ex => {
-    const we = makeWorkoutExercise(ex)
+    const we = makeWorkoutExercise(ex, 'beginner')
     // Reduce warm-up volume
     if (we.reps) we.reps = Math.ceil(we.reps * 0.6)
     if (we.durationSeconds) we.durationSeconds = Math.min(we.durationSeconds, 30)
@@ -114,7 +143,7 @@ function generateCoolDown(eligible: Exercise[], _usedMuscles: MuscleGroup[]): Wo
   const selected = pickRandom(unique, Math.min(4, unique.length))
 
   const exercises = selected.map(ex => {
-    const we = makeWorkoutExercise(ex)
+    const we = makeWorkoutExercise(ex, 'beginner')
     if (we.durationSeconds) we.durationSeconds = Math.max(we.durationSeconds, 40)
     return we
   })
@@ -138,17 +167,20 @@ function generateCoolDown(eligible: Exercise[], _usedMuscles: MuscleGroup[]): Wo
 function generateMainWorkout(
   eligible: Exercise[],
   targetMinutes: number,
-  focus: ExerciseCategory | 'balanced'
+  focus: ExerciseCategory | 'balanced',
+  difficulty: Difficulty
 ): WorkoutPhase {
   const weights = CATEGORY_WEIGHTS[focus]
   const mainPool = eligible.filter(e => !e.isWarmUp || e.category !== 'flexibility')
   const usedIds = new Set<string>()
   const blocks: CircuitBlock[] = []
+  const configLevel = DIFFICULTY_LEVEL[difficulty]
 
   const categoryOrder: ExerciseCategory[] = ['push', 'legs', 'pull', 'core', 'cardio']
   let totalSeconds = 0
   const targetSeconds = targetMinutes * 60
   let circuitNum = 0
+  const maxExercises = EXERCISES_PER_CIRCUIT[difficulty]
 
   while (totalSeconds < targetSeconds && circuitNum < 4) {
     circuitNum++
@@ -156,7 +188,7 @@ function generateMainWorkout(
     const rotatedOrder = [...categoryOrder.slice(circuitNum % categoryOrder.length), ...categoryOrder.slice(0, circuitNum % categoryOrder.length)]
 
     for (const cat of rotatedOrder) {
-      if (circuitExercises.length >= 5) break
+      if (circuitExercises.length >= maxExercises) break
 
       const catPool = mainPool.filter(e =>
         e.category === cat && !usedIds.has(e.id)
@@ -164,12 +196,29 @@ function generateMainWorkout(
 
       if (catPool.length === 0) continue
 
-      // Score candidates
+      // Score candidates — strongly prefer exercises at the target difficulty
       const scored = catPool.map(ex => {
         let score = 1
+        // Category relevance
         score += weights[cat] * 10
-        if (!usedIds.has(ex.id)) score += 3
+        // Uniqueness
+        if (!usedIds.has(ex.id)) score += 2
+        // Equipment variety bonus
         if (ex.equipment.length > 0) score += 1
+
+        // Difficulty preference: heavily favor exercises at or near the selected level
+        const exLevel = DIFFICULTY_LEVEL[ex.difficulty]
+        if (exLevel === configLevel) {
+          // Exact match — strong bonus
+          score += 8
+        } else if (exLevel === configLevel - 1) {
+          // One level below — moderate bonus (still include some variety)
+          score += 3
+        } else {
+          // Two levels below — small penalty (only as filler)
+          score -= 2
+        }
+
         return { ex, score }
       })
 
@@ -178,28 +227,29 @@ function generateMainWorkout(
       const pick = topN[Math.floor(Math.random() * topN.length)]
 
       usedIds.add(pick.ex.id)
-      circuitExercises.push(makeWorkoutExercise(pick.ex))
+      circuitExercises.push(makeWorkoutExercise(pick.ex, difficulty))
     }
 
     if (circuitExercises.length < 3) break
 
     const circuitNames = ['Upper Body Blast', 'Lower Body Burn', 'Core Crusher', 'Full Body Finisher']
+    const rounds = ROUNDS_BY_DIFFICULTY[difficulty]
     const block: CircuitBlock = {
       type: 'circuit',
       name: `Circuit ${circuitNum} - ${circuitNames[(circuitNum - 1) % circuitNames.length]}`,
-      rounds: 3,
+      rounds,
       restBetweenExercises: 0,
-      restBetweenRounds: 60,
+      restBetweenRounds: REST_BETWEEN_ROUNDS[difficulty],
       exercises: circuitExercises,
     }
 
     const circuitTime = estimateCircuitTime(block)
     // Add inter-circuit rest
-    const restBetweenCircuits = circuitNum > 1 ? 90 : 0
+    const restBetweenCircuits = circuitNum > 1 ? REST_BETWEEN_ROUNDS[difficulty] + 30 : 0
 
     if (totalSeconds + circuitTime + restBetweenCircuits > targetSeconds + 180) {
-      // Try with 2 rounds
-      block.rounds = 2
+      // Try with one fewer round
+      block.rounds = Math.max(2, rounds - 1)
       const reducedTime = estimateCircuitTime(block)
       if (totalSeconds + reducedTime + restBetweenCircuits <= targetSeconds + 180) {
         totalSeconds += reducedTime + restBetweenCircuits
@@ -227,7 +277,7 @@ export function generateWorkout(config: WorkoutConfig): GeneratedWorkout {
   const mainMinutes = config.totalMinutes - warmUpMinutes - coolDownMinutes - 3 // 3 min buffer
 
   const warmUp = generateWarmUp(eligible)
-  const mainWorkout = generateMainWorkout(eligible, mainMinutes, config.focus || 'balanced')
+  const mainWorkout = generateMainWorkout(eligible, mainMinutes, config.focus || 'balanced', config.difficulty)
   const coolDown = generateCoolDown(eligible, [])
 
   // Count muscle coverage

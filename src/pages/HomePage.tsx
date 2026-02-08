@@ -42,7 +42,7 @@ const focusOptions: { value: ExerciseCategory | 'balanced'; label: string }[] = 
 
 export default function HomePage() {
   const navigate = useNavigate()
-  const { settings, toggleEquipment, setDifficulty } = useSettings()
+  const { settings, setDifficulty } = useSettings()
   const { history } = useWorkoutHistory()
   const sound = useSound()
   const [focus, setFocus] = useState<ExerciseCategory | 'balanced'>('balanced')
@@ -113,30 +113,23 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* Quick equipment toggles */}
-      <div className="mb-5">
-        <p className="section-header">// AVAILABLE EQUIPMENT</p>
-        <div className="flex gap-1.5 flex-wrap">
-          {equipmentList.filter(e => e.id !== 'none').map(eq => {
-            const active = settings.equipment.includes(eq.id)
-            return (
-              <button
+      {/* Active equipment from settings */}
+      {settings.equipment.length > 0 && (
+        <div className="mb-5">
+          <p className="section-header">// ACTIVE EQUIPMENT</p>
+          <div className="flex gap-1.5 flex-wrap">
+            {equipmentList.filter(e => e.id !== 'none' && settings.equipment.includes(e.id)).map(eq => (
+              <span
                 key={eq.id}
-                onClick={() => { sound.click(); toggleEquipment(eq.id) }}
-                className={cn(
-                  'px-2.5 py-1.5 text-xs font-mono transition-all flex items-center gap-1.5 border',
-                  active
-                    ? 'bg-primary-900 text-primary-400 border-primary-500'
-                    : 'bg-surface-1 text-text-ghost border-surface-3'
-                )}
+                className="px-2.5 py-1.5 text-xs font-mono flex items-center gap-1.5 border bg-primary-900 text-primary-400 border-primary-500"
               >
                 <span className="text-current">{eq.icon}</span>
                 {eq.name}
-              </button>
-            )
-          })}
+              </span>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Difficulty */}
       <div className="mb-6">

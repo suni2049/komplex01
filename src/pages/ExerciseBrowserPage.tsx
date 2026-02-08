@@ -118,7 +118,7 @@ export default function ExerciseBrowserPage() {
                   ex.difficulty === 'intermediate' ? 'border-star-gold/30 text-star-gold' :
                   'border-primary-500/30 text-primary-400'
                 )}>
-                  {ex.difficulty === 'beginner' ? 'REC' : ex.difficulty === 'intermediate' ? 'SOL' : 'SPZ'}
+                  {ex.difficulty === 'beginner' ? 'REC' : ex.difficulty === 'intermediate' ? 'SOL' : 'OPR'}
                 </span>
               </div>
             </div>
@@ -156,6 +156,7 @@ export default function ExerciseBrowserPage() {
                 {/* Animation */}
                 <div className="flex justify-center mb-4 bg-surface-1 py-6 border-2 border-surface-3">
                   <StickFigure
+                    key={selectedExercise.id}
                     animationId={selectedExercise.animationId}
                     size={180}
                     playing={true}
