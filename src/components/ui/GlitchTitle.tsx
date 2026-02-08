@@ -82,5 +82,9 @@ export default function GlitchTitle({ className }: { className?: string }) {
     }
   }, [])
 
-  return <span className={className}>{display}</span>
+  return (
+    <span className={`relative inline-block crt-text ${className ?? ''}`}>
+      {display}
+    </span>
+  )
 }
