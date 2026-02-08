@@ -213,7 +213,7 @@ export default function ActiveWorkoutPage() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.4 }}
-        className="flex flex-col items-center justify-center min-h-screen px-6 text-center"
+        className="flex flex-col items-center justify-center h-[100dvh] px-6 text-center"
       >
         <motion.div
           initial={{ scale: 0.9, opacity: 0 }}
@@ -300,7 +300,7 @@ export default function ActiveWorkoutPage() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-      className="min-h-screen flex flex-col"
+      className="h-[100dvh] flex flex-col overflow-hidden"
     >
       {/* Quit confirmation overlay */}
       <AnimatePresence>
@@ -347,7 +347,7 @@ export default function ActiveWorkoutPage() {
       </AnimatePresence>
 
       {/* Progress bar */}
-      <div className="px-4 pt-3">
+      <div className="px-4 pt-3 flex-shrink-0">
         <div className="flex items-center justify-between mb-1">
           <div className="flex items-center gap-2">
             <button
@@ -433,7 +433,7 @@ export default function ActiveWorkoutPage() {
       </AnimatePresence>
 
       {/* Current Exercise */}
-      <div className="flex-1 flex flex-col items-center justify-center px-6 py-4">
+      <div className="flex-1 flex flex-col items-center px-6 py-3 min-h-0">
         <AnimatePresence mode="wait">
           <motion.div
             key={currentIndex}
@@ -445,12 +445,12 @@ export default function ActiveWorkoutPage() {
           >
             {/* Stick figure */}
             <div
-              className="mb-4 bg-surface-1 p-4 border-2 border-surface-3 relative animate-glow-pulse-inset"
+              className="mb-3 bg-surface-1 p-3 border-2 border-surface-3 relative animate-glow-pulse-inset"
             >
               <StickFigure
                 animationId={current.exercise.exercise.animationId}
                 playing={!isPaused}
-                size={180}
+                size={140}
               />
             </div>
 
@@ -466,7 +466,7 @@ export default function ActiveWorkoutPage() {
 
             {/* Rep/time info */}
             <motion.div
-              className="text-center mb-3"
+              className="text-center mb-2"
               initial={{ scale: 0.85, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ delay: 0.15, type: 'spring', stiffness: 300, damping: 20 }}
@@ -484,7 +484,7 @@ export default function ActiveWorkoutPage() {
 
             {/* Category badges */}
             <motion.div
-              className="flex gap-1.5 mb-4"
+              className="flex gap-1.5 mb-3"
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2, duration: 0.25 }}
@@ -516,7 +516,7 @@ export default function ActiveWorkoutPage() {
       </div>
 
       {/* Bottom controls */}
-      <div className="px-4 pb-6 flex gap-2 items-center">
+      <div className="px-4 pb-4 pt-2 flex gap-2 items-center flex-shrink-0">
         <button
           onClick={handlePause}
           className="w-12 h-12 bg-surface-2 border border-surface-3 flex items-center justify-center"

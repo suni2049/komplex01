@@ -48,13 +48,16 @@ const CATEGORY_WEIGHTS: Record<ExerciseCategory | 'balanced', Record<ExerciseCat
   flexibility: { push: 0.15, pull: 0.10, legs: 0.15, core: 0.15, cardio: 0.10, flexibility: 0.35 },
 }
 
-function getEligibleExercises(config: WorkoutConfig): Exercise[] {
+function getEligibleExercises(config: WorkoutConfig, ignoreEquipmentOnly = false): Exercise[] {
   return exercises.filter(ex => {
     const hasEquipment = ex.equipment.length === 0 ||
       ex.equipment.every(eq => config.availableEquipment.includes(eq))
     const difficultyOk = DIFFICULTY_LEVEL[ex.difficulty] <= DIFFICULTY_LEVEL[config.difficulty]
     const notExcluded = !config.excludeExerciseIds?.includes(ex.id)
-    return hasEquipment && difficultyOk && notExcluded
+    // When equipmentOnly is set, only include exercises that require at least one piece of equipment
+    // ignoreEquipmentOnly is used for warm-up/cool-down which have no equipment-specific exercises
+    const equipmentOnlyOk = ignoreEquipmentOnly || !config.equipmentOnly || ex.equipment.length > 0
+    return hasEquipment && difficultyOk && notExcluded && equipmentOnlyOk
   })
 }
 
@@ -164,6 +167,29 @@ function generateCoolDown(eligible: Exercise[], _usedMuscles: MuscleGroup[]): Wo
   }
 }
 
+function scoreAndPick(pool: Exercise[], categoryWeight: number, configLevel: number): Exercise {
+  const scored = pool.map(ex => {
+    let score = 1
+    score += categoryWeight * 10
+    if (ex.equipment.length > 0) score += 4
+
+    const exLevel = DIFFICULTY_LEVEL[ex.difficulty]
+    if (exLevel === configLevel) {
+      score += 8
+    } else if (exLevel === configLevel - 1) {
+      score += 3
+    } else {
+      score -= 2
+    }
+
+    return { ex, score }
+  })
+
+  scored.sort((a, b) => b.score - a.score)
+  const topN = scored.slice(0, Math.min(3, scored.length))
+  return topN[Math.floor(Math.random() * topN.length)].ex
+}
+
 function generateMainWorkout(
   eligible: Exercise[],
   targetMinutes: number,
@@ -196,41 +222,27 @@ function generateMainWorkout(
 
       if (catPool.length === 0) continue
 
-      // Score candidates — strongly prefer exercises at the target difficulty
-      const scored = catPool.map(ex => {
-        let score = 1
-        // Category relevance
-        score += weights[cat] * 10
-        // Uniqueness
-        if (!usedIds.has(ex.id)) score += 2
-        // Equipment variety bonus
-        if (ex.equipment.length > 0) score += 1
-
-        // Difficulty preference: heavily favor exercises at or near the selected level
-        const exLevel = DIFFICULTY_LEVEL[ex.difficulty]
-        if (exLevel === configLevel) {
-          // Exact match — strong bonus
-          score += 8
-        } else if (exLevel === configLevel - 1) {
-          // One level below — moderate bonus (still include some variety)
-          score += 3
-        } else {
-          // Two levels below — small penalty (only as filler)
-          score -= 2
-        }
-
-        return { ex, score }
-      })
-
-      scored.sort((a, b) => b.score - a.score)
-      const topN = scored.slice(0, Math.min(3, scored.length))
-      const pick = topN[Math.floor(Math.random() * topN.length)]
-
-      usedIds.add(pick.ex.id)
-      circuitExercises.push(makeWorkoutExercise(pick.ex, difficulty))
+      const pick = scoreAndPick(catPool, weights[cat], configLevel)
+      usedIds.add(pick.id)
+      circuitExercises.push(makeWorkoutExercise(pick, difficulty))
     }
 
-    if (circuitExercises.length < 3) break
+    // If we don't have enough exercises from category rotation,
+    // fill from any remaining unused exercises (allows multiple from same category)
+    if (circuitExercises.length < maxExercises) {
+      const remainingPool = mainPool.filter(e => !usedIds.has(e.id))
+      while (circuitExercises.length < maxExercises && remainingPool.length > 0) {
+        const pick = scoreAndPick(remainingPool, 0.2, configLevel)
+        usedIds.add(pick.id)
+        circuitExercises.push(makeWorkoutExercise(pick, difficulty))
+        // Remove from remainingPool
+        const idx = remainingPool.findIndex(e => e.id === pick.id)
+        if (idx !== -1) remainingPool.splice(idx, 1)
+      }
+    }
+
+    // Minimum 2 exercises for a valid circuit (lowered from 3 for limited pools)
+    if (circuitExercises.length < 2) break
 
     const circuitNames = ['Upper Body Blast', 'Lower Body Burn', 'Core Crusher', 'Full Body Finisher']
     const rounds = ROUNDS_BY_DIFFICULTY[difficulty]
@@ -271,14 +283,19 @@ function generateMainWorkout(
 
 export function generateWorkout(config: WorkoutConfig): GeneratedWorkout {
   const eligible = getEligibleExercises(config)
+  // Warm-up/cool-down always use full pool (no equipment-only filter)
+  // since there are no equipment-specific warm-up/cool-down exercises
+  const warmCoolEligible = config.equipmentOnly
+    ? getEligibleExercises(config, true)
+    : eligible
 
   const warmUpMinutes = 7
   const coolDownMinutes = 5
   const mainMinutes = config.totalMinutes - warmUpMinutes - coolDownMinutes - 3 // 3 min buffer
 
-  const warmUp = generateWarmUp(eligible)
+  const warmUp = generateWarmUp(warmCoolEligible)
   const mainWorkout = generateMainWorkout(eligible, mainMinutes, config.focus || 'balanced', config.difficulty)
-  const coolDown = generateCoolDown(eligible, [])
+  const coolDown = generateCoolDown(warmCoolEligible, [])
 
   // Count muscle coverage
   const muscleGroupCoverage: Partial<Record<MuscleGroup, number>> = {}

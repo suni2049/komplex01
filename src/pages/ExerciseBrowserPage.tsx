@@ -4,7 +4,8 @@ import { exercises } from '../data/exercises'
 import { categoryLabels, categoryColors } from '../data/muscles'
 import StickFigure from '../components/stickfigure/StickFigure'
 import { cn } from '../utils/cn'
-import type { ExerciseCategory, Difficulty, Exercise } from '../types/exercise'
+import { equipmentList } from '../data/equipment'
+import type { ExerciseCategory, Difficulty, Equipment, Exercise } from '../types/exercise'
 
 const categories: (ExerciseCategory | 'all')[] = ['all', 'push', 'pull', 'legs', 'core', 'cardio', 'flexibility']
 const difficultyFilters: (Difficulty | 'all')[] = ['all', 'beginner', 'intermediate', 'advanced']
@@ -20,6 +21,7 @@ export default function ExerciseBrowserPage() {
   const [search, setSearch] = useState('')
   const [categoryFilter, setCategoryFilter] = useState<ExerciseCategory | 'all'>('all')
   const [difficultyFilter, setDifficultyFilter] = useState<Difficulty | 'all'>('all')
+  const [equipmentFilter, setEquipmentFilter] = useState<Equipment | 'all'>('all')
   const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null)
 
   const filtered = useMemo(() => {
@@ -27,9 +29,16 @@ export default function ExerciseBrowserPage() {
       if (search && !ex.name.toLowerCase().includes(search.toLowerCase())) return false
       if (categoryFilter !== 'all' && ex.category !== categoryFilter) return false
       if (difficultyFilter !== 'all' && ex.difficulty !== difficultyFilter) return false
+      if (equipmentFilter !== 'all') {
+        if (equipmentFilter === 'none') {
+          if (ex.equipment.length > 0) return false
+        } else {
+          if (!ex.equipment.includes(equipmentFilter)) return false
+        }
+      }
       return true
     })
-  }, [search, categoryFilter, difficultyFilter])
+  }, [search, categoryFilter, difficultyFilter, equipmentFilter])
 
   return (
     <div className="px-4 pt-10 pb-6">
@@ -68,7 +77,7 @@ export default function ExerciseBrowserPage() {
       </div>
 
       {/* Difficulty filter */}
-      <div className="flex gap-1 mb-4">
+      <div className="flex gap-1 mb-3">
         {difficultyFilters.map(d => (
           <button
             key={d}
@@ -81,6 +90,47 @@ export default function ExerciseBrowserPage() {
             )}
           >
             {difficultyLabels[d]}
+          </button>
+        ))}
+      </div>
+
+      {/* Equipment filter */}
+      <div className="flex gap-1 mb-4 overflow-x-auto hide-scrollbar pb-1">
+        <button
+          onClick={() => setEquipmentFilter('all')}
+          className={cn(
+            'px-2 py-1 text-[10px] font-heading font-bold whitespace-nowrap transition-all tracking-wider border',
+            equipmentFilter === 'all'
+              ? 'bg-primary-600 text-white border-primary-500'
+              : 'bg-surface-1 text-text-muted border-surface-3'
+          )}
+        >
+          ALL GEAR
+        </button>
+        <button
+          onClick={() => setEquipmentFilter('none')}
+          className={cn(
+            'px-2 py-1 text-[10px] font-heading font-bold whitespace-nowrap transition-all tracking-wider border',
+            equipmentFilter === 'none'
+              ? 'bg-primary-600 text-white border-primary-500'
+              : 'bg-surface-1 text-text-muted border-surface-3'
+          )}
+        >
+          BODYWEIGHT
+        </button>
+        {equipmentList.filter(e => e.id !== 'none').map(eq => (
+          <button
+            key={eq.id}
+            onClick={() => setEquipmentFilter(eq.id)}
+            className={cn(
+              'px-2 py-1 text-[10px] font-mono whitespace-nowrap transition-all tracking-wider border flex items-center gap-1',
+              equipmentFilter === eq.id
+                ? 'bg-primary-600 text-white border-primary-500'
+                : 'bg-surface-1 text-text-muted border-surface-3'
+            )}
+          >
+            <span className="w-3.5 h-3.5 [&>svg]:w-3.5 [&>svg]:h-3.5">{eq.icon}</span>
+            {eq.name.toUpperCase()}
           </button>
         ))}
       </div>

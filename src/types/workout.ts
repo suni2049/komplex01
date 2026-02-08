@@ -6,6 +6,7 @@ export interface WorkoutConfig {
   difficulty: Difficulty
   excludeExerciseIds?: string[]
   focus?: ExerciseCategory | 'balanced'
+  equipmentOnly?: boolean
 }
 
 export interface WorkoutExercise {

@@ -46,6 +46,7 @@ export default function HomePage() {
   const { history } = useWorkoutHistory()
   const sound = useSound()
   const [focus, setFocus] = useState<ExerciseCategory | 'balanced'>('balanced')
+  const [equipmentOnly, setEquipmentOnly] = useState(false)
   const [generating, setGenerating] = useState(false)
   const [generatedWorkout, setGeneratedWorkout] = useState<GeneratedWorkout | null>(null)
   const [motto] = useState(() => DIRECTIVES[Math.floor(Math.random() * DIRECTIVES.length)])
@@ -59,12 +60,13 @@ export default function HomePage() {
         availableEquipment: settings.equipment,
         difficulty: settings.defaultDifficulty,
         focus,
+        equipmentOnly,
       })
       setGeneratedWorkout(workout)
       setGenerating(false)
       sound.ready()
     }, 600)
-  }, [settings, focus, sound])
+  }, [settings, focus, equipmentOnly, sound])
 
   const handleStart = useCallback(() => {
     if (generatedWorkout) {
@@ -116,7 +118,26 @@ export default function HomePage() {
       {/* Active equipment from settings */}
       {settings.equipment.length > 0 && (
         <div className="mb-5">
-          <p className="section-header">// ACTIVE EQUIPMENT</p>
+          <div className="flex items-center justify-between mb-1">
+            <p className="section-header mb-0">// ACTIVE EQUIPMENT</p>
+            <button
+              onClick={() => { sound.click(); setEquipmentOnly(v => !v) }}
+              className={cn(
+                'flex items-center gap-1.5 px-2 py-1 text-[10px] font-mono tracking-wider border transition-all',
+                equipmentOnly
+                  ? 'bg-primary-600 text-white border-primary-500'
+                  : 'bg-surface-1 text-text-ghost border-surface-3'
+              )}
+            >
+              <span className={cn(
+                'w-3 h-3 border flex items-center justify-center text-[8px]',
+                equipmentOnly ? 'border-white' : 'border-text-ghost'
+              )}>
+                {equipmentOnly && '\u2713'}
+              </span>
+              EQUIPMENT ONLY
+            </button>
+          </div>
           <div className="flex gap-1.5 flex-wrap">
             {equipmentList.filter(e => e.id !== 'none' && settings.equipment.includes(e.id)).map(eq => (
               <span
