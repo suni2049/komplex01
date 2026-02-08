@@ -1,5 +1,6 @@
 import { useLocation, useNavigate } from 'react-router-dom'
 import { cn } from '../../utils/cn'
+import { useSound } from '../../hooks/useSound'
 
 const tabs = [
   { path: '/', label: 'BASE', icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1' },
@@ -12,6 +13,7 @@ const tabs = [
 export default function BottomNav() {
   const location = useLocation()
   const navigate = useNavigate()
+  const sound = useSound()
 
   if (location.pathname === '/workout') return null
 
@@ -23,7 +25,7 @@ export default function BottomNav() {
           return (
             <button
               key={tab.path}
-              onClick={() => navigate(tab.path)}
+              onClick={() => { sound.click(); navigate(tab.path) }}
               className={cn(
                 'flex flex-col items-center gap-0 px-2 py-1 transition-all',
                 isActive ? 'text-primary-600' : 'text-text-muted'

@@ -13,7 +13,7 @@ const difficultyLabels: Record<string, string> = {
   all: 'ALL RANKS',
   beginner: 'RECRUIT',
   intermediate: 'SOLDIER',
-  advanced: 'SPETSNAZ',
+  advanced: 'OPERATOR',
 }
 
 export default function ExerciseBrowserPage() {
@@ -96,7 +96,7 @@ export default function ExerciseBrowserPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: Math.min(i * 0.02, 0.3) }}
             onClick={() => setSelectedExercise(ex)}
-            className="w-full card-soviet p-3 text-left flex items-center gap-3"
+            className="w-full card-base p-3 text-left flex items-center gap-3"
           >
             <div className="w-12 h-12 bg-surface-1 flex items-center justify-center flex-shrink-0 border border-surface-3">
               <StickFigure animationId={ex.animationId} size={44} playing={false} />

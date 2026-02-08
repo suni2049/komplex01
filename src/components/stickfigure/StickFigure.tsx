@@ -39,7 +39,7 @@ interface StickFigureProps {
   color?: string
 }
 
-export default function StickFigure({ animationId, playing = true, size = 160, color = '#DC2626' }: StickFigureProps) {
+export default function StickFigure({ animationId, playing = true, size = 160, color = 'var(--color-primary-600)' }: StickFigureProps) {
   const anim: ExerciseAnimation | undefined = animationRegistry[animationId]
   const [pose, setPose] = useState<Pose | null>(() => anim ? anim.poses[0] : null)
 

@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useWorkoutHistory } from '../hooks/useWorkoutHistory'
 import { formatDate } from '../utils/formatTime'
+import { IconStarFilled } from '../components/icons/Icons'
 
 export default function FavoritesPage() {
   const navigate = useNavigate()
@@ -25,7 +26,7 @@ export default function FavoritesPage() {
           animate={{ opacity: 1 }}
           className="text-center mt-20"
         >
-          <div className="text-4xl text-star-gold mb-4">★</div>
+          <div className="text-4xl text-star-gold mb-4 flex justify-center"><IconStarFilled className="w-12 h-12" /></div>
           <p className="text-text-secondary font-heading font-bold tracking-wider mb-2 uppercase">No saved protocols</p>
           <p className="text-xs text-text-muted font-mono mb-6">COMPLETE A PROTOCOL AND ARCHIVE IT</p>
           <button
@@ -45,11 +46,11 @@ export default function FavoritesPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.05 }}
-                className="card-soviet p-4"
+                className="card-base p-4"
               >
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-8 h-8 border border-star-gold flex items-center justify-center text-star-gold text-sm">
-                    ★
+                    <IconStarFilled className="w-4 h-4" />
                   </div>
                   <div className="flex-1">
                     <p className="text-xs font-heading font-bold text-text-primary uppercase tracking-wider">{formatDate(entry.completedAt)}</p>
@@ -93,9 +94,9 @@ export default function FavoritesPage() {
                       sessionStorage.setItem('activeWorkout', JSON.stringify(workout))
                       navigate('/workout')
                     }}
-                    className="flex-1 py-3 bg-primary-600 text-white font-heading font-bold text-xs tracking-widest border border-primary-500 uppercase"
+                    className="flex-1 py-3 bg-primary-600 text-white font-heading font-bold text-xs tracking-widest border border-primary-500 uppercase flex items-center justify-center gap-2"
                   >
-                    ★ COMMENCE
+                    <IconStarFilled className="w-3 h-3" /> COMMENCE
                   </motion.button>
                   <button
                     onClick={() => toggleFavorite(entry.id)}

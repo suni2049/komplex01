@@ -6,8 +6,11 @@ import HistoryPage from './pages/HistoryPage'
 import FavoritesPage from './pages/FavoritesPage'
 import SettingsPage from './pages/SettingsPage'
 import ExerciseBrowserPage from './pages/ExerciseBrowserPage'
+import { useApplyTheme } from './hooks/useTheme'
 
 export default function App() {
+  useApplyTheme()
+
   return (
     <BrowserRouter>
       <Routes>

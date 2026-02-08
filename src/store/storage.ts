@@ -52,12 +52,14 @@ const DEFAULT_SETTINGS: UserSettings = {
   equipment: ['none', 'push-up-bars'] as Equipment[],
   defaultDifficulty: 'intermediate',
   defaultDurationMinutes: 60,
+  accentColor: 'signal-red',
+  soundEnabled: true,
 }
 
 export async function getSettings(): Promise<UserSettings> {
   const db = await getDB()
   const settings = await db.get('userSettings', 'settings')
-  return settings || DEFAULT_SETTINGS
+  return settings ? { ...DEFAULT_SETTINGS, ...settings } : DEFAULT_SETTINGS
 }
 
 export async function updateSettings(partial: Partial<UserSettings>): Promise<UserSettings> {

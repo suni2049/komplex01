@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { getSettings, updateSettings } from '../store/storage'
+import { applyThemeColors } from './useTheme'
 import type { UserSettings } from '../store/db'
 import type { Equipment, Difficulty } from '../types/exercise'
 
@@ -9,6 +10,8 @@ export function useSettings() {
     equipment: ['none', 'push-up-bars'],
     defaultDifficulty: 'intermediate',
     defaultDurationMinutes: 60,
+    accentColor: 'signal-red',
+    soundEnabled: true,
   })
   const [loading, setLoading] = useState(true)
 
@@ -37,5 +40,16 @@ export function useSettings() {
     setSettings(updated)
   }, [])
 
-  return { settings, loading, toggleEquipment, setDifficulty, setDuration }
+  const setAccentColor = useCallback(async (colorId: string) => {
+    applyThemeColors(colorId)
+    const updated = await updateSettings({ accentColor: colorId })
+    setSettings(updated)
+  }, [])
+
+  const toggleSound = useCallback(async () => {
+    const updated = await updateSettings({ soundEnabled: !settings.soundEnabled })
+    setSettings(updated)
+  }, [settings.soundEnabled])
+
+  return { settings, loading, toggleEquipment, setDifficulty, setDuration, setAccentColor, toggleSound }
 }

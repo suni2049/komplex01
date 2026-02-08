@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import StickFigure from '../components/stickfigure/StickFigure'
@@ -7,6 +7,8 @@ import { useWorkoutHistory } from '../hooks/useWorkoutHistory'
 import { formatSeconds } from '../utils/formatTime'
 import { generateId } from '../utils/id'
 import { cn } from '../utils/cn'
+import { IconStarFilled, IconCheck } from '../components/icons/Icons'
+import { useSound } from '../hooks/useSound'
 import type { GeneratedWorkout, WorkoutExercise, CircuitBlock } from '../types/workout'
 
 interface FlatExercise {
@@ -47,6 +49,7 @@ function flattenWorkout(workout: GeneratedWorkout): FlatExercise[] {
 export default function ActiveWorkoutPage() {
   const navigate = useNavigate()
   const { save } = useWorkoutHistory()
+  const sound = useSound()
 
   const workout = useMemo<GeneratedWorkout | null>(() => {
     const data = sessionStorage.getItem('activeWorkout')
@@ -68,18 +71,26 @@ export default function ActiveWorkoutPage() {
   const current = flatExercises[currentIndex]
   const exerciseDuration = current?.exercise.durationSeconds || 0
 
+  // Forward declaration of handleNext using a ref to break excessive cycles
+  const handleNextRef = useRef<(skipped: boolean) => void>(() => { })
+
   const timer = useTimer(
     isResting
       ? (current?.block.restBetweenExercises || 15)
       : exerciseDuration,
     () => {
       if (isResting) {
+        sound.timerDone()
         setIsResting(false)
       } else if (exerciseDuration > 0) {
-        handleNext(false)
+        handleNextRef.current(false)
       }
     }
   )
+
+  useEffect(() => {
+    if (isResting && timer.secondsLeft > 0) sound.tick()
+  }, [isResting, timer.secondsLeft]) // eslint-disable-line
 
   useEffect(() => {
     window.scrollTo(0, 0)
@@ -91,12 +102,13 @@ export default function ActiveWorkoutPage() {
   }, []) // eslint-disable-line
 
   const goToNext = useCallback((skipped: boolean) => {
-    if (!skipped) setExercisesCompleted(c => c + 1)
-    else setExercisesSkipped(c => c + 1)
+    if (!skipped) { setExercisesCompleted(c => c + 1); sound.complete() }
+    else { setExercisesSkipped(c => c + 1); sound.skip() }
 
     if (currentIndex >= flatExercises.length - 1) {
       setIsComplete(true)
       stopwatch.pause()
+      sound.victory()
       return
     }
 
@@ -120,7 +132,7 @@ export default function ActiveWorkoutPage() {
     } else {
       setCurrentIndex(i => i + 1)
     }
-  }, [currentIndex, flatExercises, current, timer, stopwatch])
+  }, [currentIndex, flatExercises, current, timer, stopwatch, sound])
 
   const handleNext = useCallback((skipped: boolean) => {
     if (isResting) {
@@ -131,7 +143,13 @@ export default function ActiveWorkoutPage() {
     goToNext(skipped)
   }, [isResting, goToNext])
 
+  // Update the ref whenever handleNext changes
+  useEffect(() => {
+    handleNextRef.current = handleNext
+  }, [handleNext])
+
   const handlePause = useCallback(() => {
+    sound.pause()
     if (isPaused) {
       setIsPaused(false)
       stopwatch.start()
@@ -141,7 +159,7 @@ export default function ActiveWorkoutPage() {
       stopwatch.pause()
       timer.pause()
     }
-  }, [isPaused, stopwatch, timer, isResting])
+  }, [isPaused, stopwatch, timer, isResting, sound])
 
   const handleComplete = useCallback(async () => {
     if (!workout) return
@@ -202,15 +220,17 @@ export default function ActiveWorkoutPage() {
           animate={{ scale: 1, opacity: 1 }}
           transition={{ delay: 0.15, type: 'spring', stiffness: 200, damping: 18 }}
           className="border-2 border-primary-500 p-8 mb-6 w-full max-w-sm"
-          style={{ boxShadow: '0 0 25px rgba(196, 30, 30, 0.2), inset 0 0 15px rgba(196, 30, 30, 0.05)' }}
+          style={{ boxShadow: '0 0 25px color-mix(in srgb, var(--color-primary-500) 20%, transparent), inset 0 0 15px color-mix(in srgb, var(--color-primary-500) 5%, transparent)' }}
         >
           <motion.div
             initial={{ scale: 0, rotate: -180 }}
             animate={{ scale: 1, rotate: 0 }}
             transition={{ delay: 0.3, type: 'spring', stiffness: 250, damping: 15 }}
-            className="text-primary-500 text-5xl font-heading font-bold mb-2"
-            style={{ textShadow: '0 0 20px rgba(196, 30, 30, 0.5)' }}
-          >★</motion.div>
+            className="text-primary-500 text-5xl font-heading font-bold mb-2 flex justify-center"
+            style={{ textShadow: '0 0 20px color-mix(in srgb, var(--color-primary-500) 50%, transparent)' }}
+          >
+            <IconStarFilled className="w-16 h-16" />
+          </motion.div>
           <motion.h1
             initial={{ y: 10, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
@@ -238,7 +258,7 @@ export default function ActiveWorkoutPage() {
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.55 + i * 0.1, type: 'spring', stiffness: 250, damping: 20 }}
-              className="card-soviet p-3 text-center"
+              className="card-base p-3 text-center"
             >
               <p className={cn('font-mono text-xl font-bold', stat.highlight ? 'text-primary-500' : 'text-text-ghost')}>
                 {stat.value}
@@ -257,17 +277,9 @@ export default function ActiveWorkoutPage() {
           <motion.button
             whileTap={{ scale: 0.97 }}
             onClick={handleFavoriteAndComplete}
-            animate={{
-              boxShadow: [
-                '0 0 0px rgba(220, 38, 38, 0)',
-                '0 0 16px rgba(220, 38, 38, 0.35)',
-                '0 0 0px rgba(220, 38, 38, 0)',
-              ],
-            }}
-            transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-            className="w-full py-4 bg-primary-600 text-white font-heading font-bold tracking-widest text-sm border border-primary-500"
+            className="w-full py-4 bg-primary-600 text-white font-heading font-bold tracking-widest text-sm border border-primary-500 flex items-center justify-center gap-2 animate-glow-pulse"
           >
-            ★ ARCHIVE TO FAVORITES
+            <IconStarFilled className="w-4 h-4" /> ARCHIVE TO FAVORITES
           </motion.button>
           <button
             onClick={handleComplete}
@@ -349,8 +361,8 @@ export default function ActiveWorkoutPage() {
             <span className={cn(
               'text-[10px] font-heading font-bold tracking-widest px-2 py-0.5 border uppercase',
               current.phase === 'Warm-Up' ? 'border-star-gold text-star-gold' :
-              current.phase === 'Cool-Down' ? 'border-khaki text-khaki' :
-              'border-primary-500 text-primary-500'
+                current.phase === 'Cool-Down' ? 'border-khaki text-khaki' :
+                  'border-primary-500 text-primary-500'
             )}>
               {current.phase}
             </span>
@@ -360,7 +372,7 @@ export default function ActiveWorkoutPage() {
         <div className="h-1 bg-surface-3 overflow-hidden">
           <motion.div
             className="h-full bg-primary-500"
-            style={{ boxShadow: '0 0 8px rgba(196, 30, 30, 0.6), 0 0 2px rgba(220, 38, 38, 0.8)' }}
+            style={{ boxShadow: '0 0 8px color-mix(in srgb, var(--color-primary-500) 60%, transparent), 0 0 2px color-mix(in srgb, var(--color-primary-600) 80%, transparent)' }}
             animate={{ width: `${progress * 100}%` }}
             transition={{ duration: 0.3, ease: 'easeOut' }}
           />
@@ -397,7 +409,7 @@ export default function ActiveWorkoutPage() {
               animate={{ scale: 1, opacity: 1 }}
               transition={{ delay: 0.2, type: 'spring', stiffness: 200, damping: 15 }}
               className="font-mono text-7xl font-bold text-primary-500 mb-4"
-              style={{ textShadow: '0 0 20px rgba(196, 30, 30, 0.4)' }}
+              style={{ textShadow: '0 0 20px color-mix(in srgb, var(--color-primary-500) 40%, transparent)' }}
             >{timer.secondsLeft}</motion.p>
             <motion.p
               initial={{ opacity: 0 }}
@@ -432,23 +444,15 @@ export default function ActiveWorkoutPage() {
             className="w-full flex flex-col items-center"
           >
             {/* Stick figure */}
-            <motion.div
-              className="mb-4 bg-surface-1 p-4 border-2 border-surface-3 relative"
-              animate={{
-                boxShadow: [
-                  '0 0 0px rgba(196, 30, 30, 0), inset 0 0 0px rgba(196, 30, 30, 0)',
-                  '0 0 20px rgba(196, 30, 30, 0.25), inset 0 0 12px rgba(196, 30, 30, 0.08)',
-                  '0 0 0px rgba(196, 30, 30, 0), inset 0 0 0px rgba(196, 30, 30, 0)',
-                ],
-              }}
-              transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+            <div
+              className="mb-4 bg-surface-1 p-4 border-2 border-surface-3 relative animate-glow-pulse-inset"
             >
               <StickFigure
                 animationId={current.exercise.exercise.animationId}
                 playing={!isPaused}
                 size={180}
               />
-            </motion.div>
+            </div>
 
             {/* Exercise name */}
             <motion.h2
@@ -468,11 +472,11 @@ export default function ActiveWorkoutPage() {
               transition={{ delay: 0.15, type: 'spring', stiffness: 300, damping: 20 }}
             >
               {current.exercise.durationSeconds ? (
-                <p className="font-mono text-4xl font-bold text-primary-500" style={{ textShadow: '0 0 12px rgba(196, 30, 30, 0.3)' }}>
+                <p className="font-mono text-4xl font-bold text-primary-500" style={{ textShadow: '0 0 12px color-mix(in srgb, var(--color-primary-500) 30%, transparent)' }}>
                   {timer.secondsLeft}S
                 </p>
               ) : (
-                <p className="font-mono text-4xl font-bold text-primary-500" style={{ textShadow: '0 0 12px rgba(196, 30, 30, 0.3)' }}>
+                <p className="font-mono text-4xl font-bold text-primary-500" style={{ textShadow: '0 0 12px color-mix(in srgb, var(--color-primary-500) 30%, transparent)' }}>
                   {current.exercise.reps}{current.exercise.perSide ? ' EACH' : ' REPS'}
                 </p>
               )}
@@ -494,7 +498,7 @@ export default function ActiveWorkoutPage() {
 
             {/* Instructions */}
             <motion.div
-              className="w-full card-soviet p-4"
+              className="w-full card-base p-4"
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.25, duration: 0.3 }}
@@ -540,19 +544,11 @@ export default function ActiveWorkoutPage() {
             }
           }}
           whileTap={{ scale: 0.95 }}
-          animate={{
-            boxShadow: [
-              '0 0 0px rgba(220, 38, 38, 0)',
-              '0 0 14px rgba(220, 38, 38, 0.4)',
-              '0 0 0px rgba(220, 38, 38, 0)',
-            ],
-          }}
-          transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-          className="flex-[2] py-3.5 bg-primary-600 text-white font-heading font-bold text-sm tracking-widest border border-primary-500 uppercase"
+          className="flex-[2] py-3.5 bg-primary-600 text-white font-heading font-bold text-sm tracking-widest border border-primary-500 uppercase flex items-center justify-center gap-2 animate-glow-pulse"
         >
           {current.exercise.durationSeconds && !timer.isRunning && timer.secondsLeft > 0
             ? 'START TIMER'
-            : 'DONE ✓'}
+            : <><span className="mr-1">DONE</span> <IconCheck className="w-4 h-4" /></>}
         </motion.button>
       </div>
     </motion.div>

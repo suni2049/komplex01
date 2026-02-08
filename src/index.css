@@ -8,7 +8,7 @@
   --color-surface-3: #2A2A2A;
   --color-surface-4: #3A3A3A;
 
-  /* Soviet red */
+  /* Signal red */
   --color-primary-50: #1A0808;
   --color-primary-100: #2D0E0E;
   --color-primary-200: #4A1515;
@@ -94,8 +94,8 @@ body {
 .hide-scrollbar::-webkit-scrollbar { display: none; }
 .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-/* Soviet card - sharp, institutional */
-.card-soviet {
+/* Base card - sharp, institutional */
+.card-base {
   background: var(--color-surface-1);
   border: 1px solid var(--color-border);
 }
@@ -144,6 +144,34 @@ body {
     rgba(0, 0, 0, 0.08) 2px,
     rgba(0, 0, 0, 0.08) 4px
   );
+}
+
+/* Theme-aware glow animations */
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 0px transparent; }
+  50% { box-shadow: 0 0 16px color-mix(in srgb, var(--color-primary-600) 35%, transparent); }
+}
+@keyframes glow-pulse-lg {
+  0%, 100% { box-shadow: 0 0 0px transparent; }
+  50% { box-shadow: 0 0 20px color-mix(in srgb, var(--color-primary-600) 40%, transparent); }
+}
+@keyframes glow-pulse-inset {
+  0%, 100% {
+    box-shadow: 0 0 0px transparent, inset 0 0 0px transparent;
+  }
+  50% {
+    box-shadow: 0 0 20px color-mix(in srgb, var(--color-primary-500) 25%, transparent),
+                inset 0 0 12px color-mix(in srgb, var(--color-primary-500) 8%, transparent);
+  }
+}
+.animate-glow-pulse {
+  animation: glow-pulse 2s ease-in-out infinite;
+}
+.animate-glow-pulse-lg {
+  animation: glow-pulse-lg 2s ease-in-out infinite;
+}
+.animate-glow-pulse-inset {
+  animation: glow-pulse-inset 3s ease-in-out infinite;
 }
 
 /* Scrollbar */

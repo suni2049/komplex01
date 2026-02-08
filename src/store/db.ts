@@ -7,6 +7,8 @@ interface UserSettings {
   equipment: Equipment[]
   defaultDifficulty: Difficulty
   defaultDurationMinutes: number
+  accentColor: string
+  soundEnabled: boolean
 }
 
 interface CaliDB extends DBSchema {

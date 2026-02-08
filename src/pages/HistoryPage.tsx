@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useWorkoutHistory } from '../hooks/useWorkoutHistory'
 import { formatDate, formatSeconds } from '../utils/formatTime'
 import { cn } from '../utils/cn'
+import { IconStar, IconStarFilled, IconBullet } from '../components/icons/Icons'
 
 export default function HistoryPage() {
   const navigate = useNavigate()
@@ -49,7 +50,7 @@ export default function HistoryPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.05 }}
-                className="card-soviet overflow-hidden"
+                className="card-base overflow-hidden"
               >
                 <button
                   onClick={() => setExpandedId(expanded ? null : entry.id)}
@@ -62,7 +63,7 @@ export default function HistoryPage() {
                         ? 'border-star-gold text-star-gold'
                         : 'border-primary-500 text-primary-500'
                     )}>
-                      {entry.isFavorite ? '★' : '//'}
+                      {entry.isFavorite ? <IconStarFilled className="w-4 h-4" /> : '//'}
                     </div>
                     <div className="flex-1">
                       <p className="text-xs font-heading font-bold text-text-primary uppercase tracking-wider">{formatDate(entry.completedAt)}</p>
@@ -115,7 +116,7 @@ export default function HistoryPage() {
                                 )}
                                 {block.exercises.map(we => (
                                   <div key={we.exercise.id} className="flex items-center gap-1.5 ml-2">
-                                    <span className="text-primary-500 text-[10px]">▸</span>
+                                    <IconBullet className="w-3 h-3 text-primary-500" />
                                     <span className="text-xs text-text-secondary font-mono">{we.exercise.name}</span>
                                     <span className="text-[10px] text-text-ghost font-mono">
                                       {we.reps ? `${we.reps}${we.perSide ? ' EA' : ''}` : `${we.durationSeconds}S`}
@@ -141,13 +142,13 @@ export default function HistoryPage() {
                           <button
                             onClick={(e) => { e.stopPropagation(); toggleFavorite(entry.id) }}
                             className={cn(
-                              'px-3 py-2 text-[10px] font-heading font-bold tracking-wider border uppercase',
+                              'px-3 py-2 text-[10px] font-heading font-bold tracking-wider border uppercase flex items-center gap-1',
                               entry.isFavorite
                                 ? 'bg-star-gold/20 text-star-gold border-star-gold/40'
                                 : 'bg-surface-2 text-text-muted border-surface-3'
                             )}
                           >
-                            {entry.isFavorite ? '★ SAVED' : '☆ SAVE'}
+                            {entry.isFavorite ? <><IconStarFilled className="w-3 h-3" /> SAVED</> : <><IconStar className="w-3 h-3" /> SAVE</>}
                           </button>
                           <button
                             onClick={(e) => { e.stopPropagation(); remove(entry.id) }}
