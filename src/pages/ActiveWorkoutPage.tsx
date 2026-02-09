@@ -228,7 +228,7 @@ export default function ActiveWorkoutPage() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.4 }}
-        className="flex flex-col items-center justify-center h-[100dvh] px-6 text-center"
+        className="flex flex-col items-center justify-center h-[calc(100dvh-env(safe-area-inset-top,0px))] px-6 text-center"
       >
         <motion.div
           initial={{ scale: 0.9, opacity: 0 }}
@@ -353,7 +353,7 @@ export default function ActiveWorkoutPage() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-      className="h-[100dvh] flex flex-col overflow-hidden"
+      className="h-[calc(100dvh-env(safe-area-inset-top,0px))] flex flex-col overflow-hidden"
     >
       {/* Quit confirmation overlay */}
       <AnimatePresence>
@@ -569,7 +569,7 @@ export default function ActiveWorkoutPage() {
       </div>
 
       {/* Bottom controls */}
-      <div className="px-4 pb-4 pt-2 flex gap-2 items-center flex-shrink-0">
+      <div className="px-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] pt-2 flex gap-2 items-center flex-shrink-0">
         <button
           onClick={handlePause}
           className="w-12 h-12 bg-surface-2 border border-surface-3 flex items-center justify-center"
