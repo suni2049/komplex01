@@ -73,6 +73,7 @@ export default function ActiveWorkoutPage() {
 
   const current = flatExercises[currentIndex]
   const exerciseDuration = current?.exercise.durationSeconds || 0
+  const exerciseContentRef = useRef<HTMLDivElement>(null)
 
   // Forward declaration of handleNext using a ref to break excessive cycles
   const handleNextRef = useRef<(skipped: boolean) => void>(() => { })
@@ -98,6 +99,10 @@ export default function ActiveWorkoutPage() {
   useEffect(() => {
     window.scrollTo(0, 0)
   }, [])
+
+  useEffect(() => {
+    exerciseContentRef.current?.scrollTo(0, 0)
+  }, [currentIndex])
 
   useEffect(() => {
     if (showFavoriteRename && favoriteInputRef.current) {
@@ -481,7 +486,7 @@ export default function ActiveWorkoutPage() {
       </AnimatePresence>
 
       {/* Current Exercise */}
-      <div className="flex-1 flex flex-col items-center px-6 py-3 min-h-0">
+      <div ref={exerciseContentRef} className="flex-1 flex flex-col items-center px-6 py-3 min-h-0 overflow-y-auto hide-scrollbar">
         <AnimatePresence mode="wait">
           <motion.div
             key={currentIndex}
