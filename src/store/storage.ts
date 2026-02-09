@@ -34,6 +34,14 @@ export async function toggleFavorite(id: string): Promise<boolean> {
   return entry.isFavorite
 }
 
+export async function renameWorkout(id: string, name: string): Promise<void> {
+  const db = await getDB()
+  const entry = await db.get('workoutHistory', id)
+  if (!entry) return
+  entry.name = name || undefined
+  await db.put('workoutHistory', entry)
+}
+
 export async function getFavorites(): Promise<WorkoutHistoryEntry[]> {
   const db = await getDB()
   const all = await db.getAllFromIndex('workoutHistory', 'by-date')

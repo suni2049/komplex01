@@ -1,12 +1,22 @@
+import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useWorkoutHistory } from '../hooks/useWorkoutHistory'
 import { formatDate } from '../utils/formatTime'
 import { IconStarFilled } from '../components/icons/Icons'
 
 export default function FavoritesPage() {
   const navigate = useNavigate()
-  const { favorites, toggleFavorite, loading } = useWorkoutHistory()
+  const { favorites, toggleFavorite, renameWorkout, loading } = useWorkoutHistory()
+  const [renameTargetId, setRenameTargetId] = useState<string | null>(null)
+  const [renameValue, setRenameValue] = useState('')
+  const renameInputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    if (renameTargetId && renameInputRef.current) {
+      renameInputRef.current.focus()
+    }
+  }, [renameTargetId])
 
   if (loading) {
     return (
@@ -53,7 +63,10 @@ export default function FavoritesPage() {
                     <IconStarFilled className="w-4 h-4" />
                   </div>
                   <div className="flex-1">
-                    <p className="text-xs font-heading font-bold text-text-primary uppercase tracking-wider">{formatDate(entry.completedAt)}</p>
+                    {entry.name && (
+                      <p className="text-xs font-heading font-bold text-star-gold uppercase tracking-wider">{entry.name}</p>
+                    )}
+                    <p className={entry.name ? 'text-[10px] font-heading font-bold text-text-muted uppercase tracking-wider' : 'text-xs font-heading font-bold text-text-primary uppercase tracking-wider'}>{formatDate(entry.completedAt)}</p>
                     <p className="text-[10px] text-text-muted font-mono">
                       {workout.totalExerciseCount} EXERCISES // ~{workout.totalEstimatedMinutes}M
                     </p>
@@ -99,6 +112,15 @@ export default function FavoritesPage() {
                     <IconStarFilled className="w-3 h-3" /> COMMENCE
                   </motion.button>
                   <button
+                    onClick={() => {
+                      setRenameTargetId(entry.id)
+                      setRenameValue(entry.name || '')
+                    }}
+                    className="px-4 py-3 bg-surface-2 text-text-muted text-xs font-heading font-bold tracking-wider border border-surface-3 uppercase"
+                  >
+                    RENAME
+                  </button>
+                  <button
                     onClick={() => toggleFavorite(entry.id)}
                     className="px-4 py-3 bg-primary-900/50 text-primary-400 text-xs font-heading font-bold tracking-wider border border-primary-700/50 uppercase"
                   >
@@ -110,6 +132,61 @@ export default function FavoritesPage() {
           })}
         </div>
       )}
+
+      {/* Rename modal */}
+      <AnimatePresence>
+        {renameTargetId && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-surface-0/95 flex flex-col items-center justify-center px-6"
+            onClick={() => setRenameTargetId(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="w-full max-w-sm border border-primary-500 bg-surface-1 p-6"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <p className="font-heading text-sm font-bold text-primary-500 tracking-widest uppercase mb-1">RENAME PROTOCOL</p>
+              <p className="text-[10px] text-text-muted font-mono mb-4">CLEAR TO REVERT TO DATE</p>
+              <input
+                ref={renameInputRef}
+                type="text"
+                value={renameValue}
+                onChange={(e) => setRenameValue(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    renameWorkout(renameTargetId, renameValue.trim())
+                    setRenameTargetId(null)
+                  }
+                }}
+                placeholder="e.g. UPPER BODY DESTROYER"
+                className="w-full bg-surface-0 border border-surface-3 px-3 py-2.5 text-sm font-mono text-text-primary placeholder:text-text-ghost tracking-wider uppercase focus:border-primary-500 focus:outline-none mb-4"
+              />
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setRenameTargetId(null)}
+                  className="flex-1 py-2.5 bg-surface-2 text-text-secondary font-heading font-bold text-[10px] tracking-wider border border-surface-3 uppercase"
+                >
+                  CANCEL
+                </button>
+                <button
+                  onClick={() => {
+                    renameWorkout(renameTargetId, renameValue.trim())
+                    setRenameTargetId(null)
+                  }}
+                  className="flex-1 py-2.5 bg-primary-600 text-white font-heading font-bold text-[10px] tracking-wider border border-primary-500 uppercase"
+                >
+                  CONFIRM
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

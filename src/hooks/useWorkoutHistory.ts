@@ -4,6 +4,7 @@ import {
   saveWorkout,
   deleteWorkout,
   toggleFavorite,
+  renameWorkout,
   getFavorites,
   clearHistory,
 } from '../store/storage'
@@ -38,10 +39,15 @@ export function useWorkoutHistory() {
     await reload()
   }, [reload])
 
+  const rename = useCallback(async (id: string, name: string) => {
+    await renameWorkout(id, name)
+    await reload()
+  }, [reload])
+
   const clear = useCallback(async () => {
     await clearHistory()
     await reload()
   }, [reload])
 
-  return { history, favorites, loading, save, remove, toggleFavorite: toggle, clearHistory: clear }
+  return { history, favorites, loading, save, remove, toggleFavorite: toggle, renameWorkout: rename, clearHistory: clear }
 }
