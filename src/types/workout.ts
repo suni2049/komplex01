@@ -45,6 +45,7 @@ export interface GeneratedWorkout {
 
 export interface WorkoutHistoryEntry {
   id: string
+  name?: string
   createdAt: string
   completedAt: string
   workout: GeneratedWorkout

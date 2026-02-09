@@ -65,6 +65,9 @@ export default function ActiveWorkoutPage() {
   const [exercisesCompleted, setExercisesCompleted] = useState(0)
   const [exercisesSkipped, setExercisesSkipped] = useState(0)
   const [showQuitConfirm, setShowQuitConfirm] = useState(false)
+  const [showFavoriteRename, setShowFavoriteRename] = useState(false)
+  const [favoriteName, setFavoriteName] = useState('')
+  const favoriteInputRef = useRef<HTMLInputElement>(null)
 
   const stopwatch = useStopwatch()
 
@@ -95,6 +98,12 @@ export default function ActiveWorkoutPage() {
   useEffect(() => {
     window.scrollTo(0, 0)
   }, [])
+
+  useEffect(() => {
+    if (showFavoriteRename && favoriteInputRef.current) {
+      favoriteInputRef.current.focus()
+    }
+  }, [showFavoriteRename])
 
   useEffect(() => {
     if (workout) stopwatch.start()
@@ -177,10 +186,11 @@ export default function ActiveWorkoutPage() {
     navigate('/history')
   }, [workout, save, stopwatch.seconds, exercisesCompleted, exercisesSkipped, navigate])
 
-  const handleFavoriteAndComplete = useCallback(async () => {
+  const handleFavoriteAndComplete = useCallback(async (name?: string) => {
     if (!workout) return
     await save({
       id: generateId(),
+      name: name || undefined,
       createdAt: workout.createdAt,
       completedAt: new Date().toISOString(),
       workout,
@@ -274,19 +284,57 @@ export default function ActiveWorkoutPage() {
           transition={{ delay: 0.85 }}
           className="flex flex-col gap-3 w-full max-w-sm"
         >
-          <motion.button
-            whileTap={{ scale: 0.97 }}
-            onClick={handleFavoriteAndComplete}
-            className="w-full py-4 bg-primary-600 text-white font-heading font-bold tracking-widest text-sm border border-primary-500 flex items-center justify-center gap-2 animate-glow-pulse"
-          >
-            <IconStarFilled className="w-4 h-4" /> ARCHIVE TO FAVORITES
-          </motion.button>
-          <button
-            onClick={handleComplete}
-            className="w-full py-4 bg-surface-2 text-text-secondary font-heading font-bold tracking-wider text-sm border border-surface-3"
-          >
-            LOG & DISMISS
-          </button>
+          {showFavoriteRename ? (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="w-full border border-primary-500 bg-surface-1 p-4"
+            >
+              <p className="font-heading text-xs font-bold text-primary-500 tracking-widest uppercase mb-1">NAME THIS PROTOCOL</p>
+              <p className="text-[10px] text-text-muted font-mono mb-3">OPTIONAL — LEAVE BLANK TO USE DATE</p>
+              <input
+                ref={favoriteInputRef}
+                type="text"
+                value={favoriteName}
+                onChange={(e) => setFavoriteName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleFavoriteAndComplete(favoriteName.trim())
+                }}
+                placeholder="e.g. UPPER BODY DESTROYER"
+                className="w-full bg-surface-0 border border-surface-3 px-3 py-2.5 text-sm font-mono text-text-primary placeholder:text-text-ghost tracking-wider uppercase focus:border-primary-500 focus:outline-none mb-3"
+              />
+              <div className="flex gap-2">
+                <button
+                  onClick={() => handleFavoriteAndComplete(favoriteName.trim())}
+                  className="flex-1 py-3 bg-primary-600 text-white font-heading font-bold text-xs tracking-widest border border-primary-500 uppercase flex items-center justify-center gap-2"
+                >
+                  <IconStarFilled className="w-3 h-3" /> SAVE
+                </button>
+                <button
+                  onClick={() => setShowFavoriteRename(false)}
+                  className="px-4 py-3 bg-surface-2 text-text-secondary font-heading font-bold text-xs tracking-wider border border-surface-3 uppercase"
+                >
+                  BACK
+                </button>
+              </div>
+            </motion.div>
+          ) : (
+            <>
+              <motion.button
+                whileTap={{ scale: 0.97 }}
+                onClick={() => setShowFavoriteRename(true)}
+                className="w-full py-4 bg-primary-600 text-white font-heading font-bold tracking-widest text-sm border border-primary-500 flex items-center justify-center gap-2 animate-glow-pulse"
+              >
+                <IconStarFilled className="w-4 h-4" /> ARCHIVE TO FAVORITES
+              </motion.button>
+              <button
+                onClick={handleComplete}
+                className="w-full py-4 bg-surface-2 text-text-secondary font-heading font-bold tracking-wider text-sm border border-surface-3"
+              >
+                LOG & DISMISS
+              </button>
+            </>
+          )}
         </motion.div>
       </motion.div>
     )
