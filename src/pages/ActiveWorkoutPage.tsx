@@ -546,6 +546,9 @@ export default function ActiveWorkoutPage() {
           <span className="text-[10px] text-text-ghost font-mono uppercase">
             {current.block.name}
             {current.totalRounds > 1 && ` // ${settings.exerciseGrouping === 'grouped' ? 'SET' : 'RND'} ${current.roundNum}/${current.totalRounds}`}
+            {current.totalRounds > 1 && settings.exerciseGrouping !== 'grouped' && (
+              <span className="text-primary-500/60"> (x{current.totalRounds})</span>
+            )}
           </span>
           <span className="text-[10px] text-text-ghost font-mono">
             {currentIndex + 1}/{totalExercises}
