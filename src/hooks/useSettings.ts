@@ -66,5 +66,10 @@ export function useSettings() {
     setSettings(updated)
   }, [])
 
-  return { settings, loading, toggleEquipment, setDifficulty, setDuration, setAccentColor, toggleSound, toggleAICoach, setGroqApiKey, setExerciseGrouping }
+  const toggleExperiencedMode = useCallback(async () => {
+    const updated = await updateSettings({ experiencedMode: !settings.experiencedMode })
+    setSettings(updated)
+  }, [settings.experiencedMode])
+
+  return { settings, loading, toggleEquipment, setDifficulty, setDuration, setAccentColor, toggleSound, toggleAICoach, setGroqApiKey, setExerciseGrouping, toggleExperiencedMode }
 }

@@ -13,6 +13,8 @@ interface UserSettings {
   // AI Coach settings
   enableAICoach?: boolean
   groqApiKey?: string
+  // Experienced mode — compact workout view for veterans
+  experiencedMode?: boolean
 }
 
 interface CaliDB extends DBSchema {

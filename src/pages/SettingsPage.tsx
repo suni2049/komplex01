@@ -18,7 +18,7 @@ const difficulties: { value: Difficulty; label: string; code: string }[] = [
 ]
 
 export default function SettingsPage() {
-  const { settings, toggleEquipment, setDifficulty, setDuration, setAccentColor, toggleSound, toggleAICoach, setGroqApiKey, setExerciseGrouping } = useSettings()
+  const { settings, toggleEquipment, setDifficulty, setDuration, setAccentColor, toggleSound, toggleAICoach, setGroqApiKey, setExerciseGrouping, toggleExperiencedMode } = useSettings()
   const { clearHistory, history } = useWorkoutHistory()
   const sound = useSound()
   const [showClearConfirm, setShowClearConfirm] = useState(false)
@@ -144,6 +144,26 @@ export default function SettingsPage() {
             <div className="text-[10px] font-mono opacity-70 mt-1">COMPLETE ALL SETS</div>
           </button>
         </div>
+      </section>
+
+      {/* Experienced Mode */}
+      <section className="mb-8 border-l-2 border-primary-500/30 pl-3">
+        <p className="section-header mb-3"><span className="text-primary-500">//</span> EXPERIENCED MODE</p>
+        <button
+          onClick={() => { sound.click(); toggleExperiencedMode() }}
+          className={cn(
+            'w-full py-3 text-xs font-heading font-bold tracking-wider transition border uppercase flex items-center justify-center gap-3',
+            settings.experiencedMode
+              ? 'bg-primary-600 text-white border-primary-500'
+              : 'bg-surface-1 text-text-muted border-surface-3'
+          )}
+        >
+          EXPERIENCED MODE
+          <span className="font-mono text-[10px]">[{settings.experiencedMode ? 'ON' : 'OFF'}]</span>
+        </button>
+        <p className="text-[10px] text-text-ghost font-mono mt-2 tracking-wider leading-relaxed">
+          COMPACT WORKOUT VIEW FOR VETERANS. SHOWS ALL EXERCISES AT ONCE WITH MINIMAL DETAIL. SKIP THE TUTORIALS — JUST EXECUTE.
+        </p>
       </section>
 
       {/* Audio */}
