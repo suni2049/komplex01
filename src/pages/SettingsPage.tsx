@@ -18,7 +18,7 @@ const difficulties: { value: Difficulty; label: string; code: string }[] = [
 ]
 
 export default function SettingsPage() {
-  const { settings, toggleEquipment, setDifficulty, setDuration, setAccentColor, toggleSound, toggleAICoach, setGroqApiKey } = useSettings()
+  const { settings, toggleEquipment, setDifficulty, setDuration, setAccentColor, toggleSound, toggleAICoach, setGroqApiKey, setExerciseGrouping } = useSettings()
   const { clearHistory, history } = useWorkoutHistory()
   const sound = useSound()
   const [showClearConfirm, setShowClearConfirm] = useState(false)
@@ -112,6 +112,37 @@ export default function SettingsPage() {
               {m}M
             </button>
           ))}
+        </div>
+      </section>
+
+      {/* Exercise Structure */}
+      <section className="mb-8 border-l-2 border-primary-500/30 pl-3">
+        <p className="section-header mb-3"><span className="text-primary-500">//</span> EXERCISE STRUCTURE</p>
+        <div className="flex gap-2">
+          <button
+            onClick={() => { sound.select(); setExerciseGrouping('circuit') }}
+            className={cn(
+              'flex-1 py-3 px-2 text-xs font-heading font-bold transition-all text-center border',
+              settings.exerciseGrouping === 'circuit' || !settings.exerciseGrouping
+                ? 'bg-primary-600 text-white border-primary-500'
+                : 'bg-surface-1 text-text-muted border-surface-3'
+            )}
+          >
+            <div>CIRCUIT</div>
+            <div className="text-[10px] font-mono opacity-70 mt-1">ROTATE EXERCISES</div>
+          </button>
+          <button
+            onClick={() => { sound.select(); setExerciseGrouping('grouped') }}
+            className={cn(
+              'flex-1 py-3 px-2 text-xs font-heading font-bold transition-all text-center border',
+              settings.exerciseGrouping === 'grouped'
+                ? 'bg-primary-600 text-white border-primary-500'
+                : 'bg-surface-1 text-text-muted border-surface-3'
+            )}
+          >
+            <div>GROUPED</div>
+            <div className="text-[10px] font-mono opacity-70 mt-1">COMPLETE ALL SETS</div>
+          </button>
         </div>
       </section>
 

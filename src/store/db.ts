@@ -9,6 +9,7 @@ interface UserSettings {
   defaultDurationMinutes: number
   accentColor: string
   soundEnabled: boolean
+  exerciseGrouping?: 'circuit' | 'grouped'
   // AI Coach settings
   enableAICoach?: boolean
   groqApiKey?: string
