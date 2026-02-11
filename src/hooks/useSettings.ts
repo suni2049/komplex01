@@ -51,5 +51,15 @@ export function useSettings() {
     setSettings(updated)
   }, [settings.soundEnabled])
 
-  return { settings, loading, toggleEquipment, setDifficulty, setDuration, setAccentColor, toggleSound }
+  const toggleAICoach = useCallback(async () => {
+    const updated = await updateSettings({ enableAICoach: !settings.enableAICoach })
+    setSettings(updated)
+  }, [settings.enableAICoach])
+
+  const setGroqApiKey = useCallback(async (key: string | undefined) => {
+    const updated = await updateSettings({ groqApiKey: key })
+    setSettings(updated)
+  }, [])
+
+  return { settings, loading, toggleEquipment, setDifficulty, setDuration, setAccentColor, toggleSound, toggleAICoach, setGroqApiKey }
 }

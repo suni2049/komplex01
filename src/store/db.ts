@@ -9,6 +9,9 @@ interface UserSettings {
   defaultDurationMinutes: number
   accentColor: string
   soundEnabled: boolean
+  // AI Coach settings
+  enableAICoach?: boolean
+  groqApiKey?: string
 }
 
 interface CaliDB extends DBSchema {

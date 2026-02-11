@@ -6,6 +6,7 @@ import { equipmentList } from '../data/equipment'
 import { accentThemes } from '../data/themes'
 import { cn } from '../utils/cn'
 import { useSound } from '../hooks/useSound'
+import { groqService } from '../lib/groqService'
 import type { Difficulty } from '../types/exercise'
 
 const durations = [30, 45, 60, 90]
@@ -17,10 +18,13 @@ const difficulties: { value: Difficulty; label: string; code: string }[] = [
 ]
 
 export default function SettingsPage() {
-  const { settings, toggleEquipment, setDifficulty, setDuration, setAccentColor, toggleSound } = useSettings()
+  const { settings, toggleEquipment, setDifficulty, setDuration, setAccentColor, toggleSound, toggleAICoach, setGroqApiKey } = useSettings()
   const { clearHistory, history } = useWorkoutHistory()
   const sound = useSound()
   const [showClearConfirm, setShowClearConfirm] = useState(false)
+  const [showApiKey, setShowApiKey] = useState(false)
+  const [apiKeyInput, setApiKeyInput] = useState(settings.groqApiKey || '')
+  const [keyValidation, setKeyValidation] = useState<'idle' | 'validating' | 'valid' | 'invalid'>('idle')
 
   return (
     <div className="px-4 pt-10 pb-6">
@@ -126,6 +130,100 @@ export default function SettingsPage() {
           SOUND EFFECTS
           <span className="font-mono text-[10px]">[{settings.soundEnabled ? 'ON' : 'OFF'}]</span>
         </button>
+      </section>
+
+      {/* AI Coach Configuration */}
+      <section className="mb-8 border-l-2 border-primary-500/30 pl-3">
+        <p className="section-header mb-3"><span className="text-primary-500">//</span> AI COACH CONFIGURATION</p>
+
+        {/* Enable/Disable Toggle */}
+        <button
+          onClick={() => { sound.click(); toggleAICoach() }}
+          className={cn(
+            'w-full py-3 text-xs font-heading font-bold tracking-wider transition border uppercase flex items-center justify-center gap-3 mb-3',
+            settings.enableAICoach
+              ? 'bg-primary-600 text-white border-primary-500'
+              : 'bg-surface-1 text-text-muted border-surface-3'
+          )}
+        >
+          AI COACH
+          <span className="font-mono text-[10px]">[{settings.enableAICoach ? 'ENABLED' : 'DISABLED'}]</span>
+        </button>
+
+        {/* API Key Input */}
+        <div className="bg-surface-1 border border-surface-3 p-3">
+          <label className="block text-[10px] font-mono text-text-muted mb-2 tracking-wider">GROQ API KEY</label>
+          <div className="flex gap-2 mb-2">
+            <input
+              type={showApiKey ? 'text' : 'password'}
+              value={apiKeyInput}
+              onChange={(e) => {
+                setApiKeyInput(e.target.value)
+                setKeyValidation('idle')
+              }}
+              placeholder="Enter your Groq API key..."
+              className="flex-1 bg-surface-0 border border-surface-3 px-3 py-2 text-xs font-mono text-text-primary focus:border-primary-500 focus:outline-none"
+            />
+            <button
+              onClick={() => setShowApiKey(!showApiKey)}
+              className="px-3 py-2 bg-surface-2 border border-surface-3 text-text-muted text-xs font-mono hover:border-primary-500"
+            >
+              {showApiKey ? 'HIDE' : 'SHOW'}
+            </button>
+          </div>
+
+          {/* Validation Status */}
+          {keyValidation === 'validating' && (
+            <p className="text-[10px] font-mono text-text-muted mb-2">⏳ Validating key...</p>
+          )}
+          {keyValidation === 'valid' && (
+            <p className="text-[10px] font-mono text-green-500 mb-2">✓ API key is valid</p>
+          )}
+          {keyValidation === 'invalid' && (
+            <p className="text-[10px] font-mono text-primary-500 mb-2">✗ Invalid API key</p>
+          )}
+
+          {/* Save Button */}
+          <button
+            onClick={async () => {
+              if (!apiKeyInput.trim()) {
+                setGroqApiKey(undefined)
+                setKeyValidation('idle')
+                sound.select()
+                return
+              }
+
+              sound.select()
+              setKeyValidation('validating')
+              const isValid = await groqService.validateApiKey(apiKeyInput.trim())
+
+              if (isValid) {
+                setGroqApiKey(apiKeyInput.trim())
+                setKeyValidation('valid')
+              } else {
+                setKeyValidation('invalid')
+              }
+            }}
+            className="w-full py-2 bg-primary-600 text-white text-xs font-heading font-bold tracking-wider border border-primary-500 uppercase hover:bg-primary-700"
+          >
+            SAVE API KEY
+          </button>
+
+          {/* Help Text */}
+          <div className="mt-3 pt-3 border-t border-surface-3">
+            <p className="text-[10px] font-mono text-text-muted mb-2">
+              Free tier: 14,400 requests/day. Your key stays on your device.
+            </p>
+            <a
+              href="https://console.groq.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block text-[10px] font-mono text-primary-500 hover:text-primary-400 underline"
+            >
+              → Get Free API Key from Groq Console
+            </a>
+          </div>
+        </div>
       </section>
 
       {/* Accent Color */}
