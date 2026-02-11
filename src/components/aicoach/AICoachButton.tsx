@@ -39,7 +39,7 @@ export default function AICoachButton({ onClick, className }: AICoachButtonProps
       onClick={onClick}
       className={cn(
         'fixed bottom-20 right-4 z-50',
-        'w-14 h-14 rounded-full',
+        'w-14 h-14',
         'bg-primary-600 text-white',
         'border-2 border-primary-500',
         'shadow-lg shadow-primary-900/50',
