@@ -223,6 +223,11 @@ export default function WorkoutPreview({ workout, onRegenerate, onStart }: Worko
                         ? `${we.reps}${we.perSide ? ' EA' : ''}`
                         : `${we.durationSeconds}S`}
                     </span>
+                    {block.rounds > 1 && (
+                      <span className="text-[9px] text-primary-500/60 font-mono shrink-0">
+                        (x{block.rounds})
+                      </span>
+                    )}
                   </div>
                 ))}
               </div>

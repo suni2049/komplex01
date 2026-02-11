@@ -26,7 +26,10 @@ interface FlatExercise {
   indexInBlock: number
 }
 
-function flattenWorkout(workout: GeneratedWorkout): FlatExercise[] {
+function flattenWorkout(
+  workout: GeneratedWorkout,
+  grouping: 'circuit' | 'grouped' = 'circuit'
+): FlatExercise[] {
   const flat: FlatExercise[] = []
   const phases = [
     { phase: 'Warm-Up', data: workout.warmUp },
@@ -35,17 +38,35 @@ function flattenWorkout(workout: GeneratedWorkout): FlatExercise[] {
   ]
   for (const { phase, data } of phases) {
     for (const block of data.blocks) {
-      for (let round = 1; round <= block.rounds; round++) {
+      // Only apply grouping to multi-round main workout circuits
+      if (grouping === 'grouped' && block.rounds > 1 && phase === 'Workout') {
+        // Grouped mode: complete all sets of each exercise before moving to next
         block.exercises.forEach((ex, idx) => {
-          flat.push({
-            exercise: ex,
-            block,
-            phase,
-            roundNum: round,
-            totalRounds: block.rounds,
-            indexInBlock: idx,
-          })
+          for (let round = 1; round <= block.rounds; round++) {
+            flat.push({
+              exercise: ex,
+              block,
+              phase,
+              roundNum: round,
+              totalRounds: block.rounds,
+              indexInBlock: idx,
+            })
+          }
         })
+      } else {
+        // Circuit mode: rotate through exercises for each round (current behavior)
+        for (let round = 1; round <= block.rounds; round++) {
+          block.exercises.forEach((ex, idx) => {
+            flat.push({
+              exercise: ex,
+              block,
+              phase,
+              roundNum: round,
+              totalRounds: block.rounds,
+              indexInBlock: idx,
+            })
+          })
+        }
       }
     }
   }
@@ -63,7 +84,10 @@ export default function ActiveWorkoutPage() {
     return data ? JSON.parse(data) : null
   }, [])
 
-  const flatExercises = useMemo(() => workout ? flattenWorkout(workout) : [], [workout])
+  const flatExercises = useMemo(() =>
+    workout ? flattenWorkout(workout, settings.exerciseGrouping || 'circuit') : [],
+    [workout, settings.exerciseGrouping]
+  )
 
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isResting, setIsResting] = useState(false)
@@ -521,7 +545,10 @@ export default function ActiveWorkoutPage() {
         <div className="flex justify-between mt-1">
           <span className="text-[10px] text-text-ghost font-mono uppercase">
             {current.block.name}
-            {current.totalRounds > 1 && ` // RND ${current.roundNum}/${current.totalRounds}`}
+            {current.totalRounds > 1 && ` // ${settings.exerciseGrouping === 'grouped' ? 'SET' : 'RND'} ${current.roundNum}/${current.totalRounds}`}
+            {current.totalRounds > 1 && settings.exerciseGrouping !== 'grouped' && (
+              <span className="text-primary-500/60"> (x{current.totalRounds})</span>
+            )}
           </span>
           <span className="text-[10px] text-text-ghost font-mono">
             {currentIndex + 1}/{totalExercises}

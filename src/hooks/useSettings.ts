@@ -61,5 +61,10 @@ export function useSettings() {
     setSettings(updated)
   }, [])
 
-  return { settings, loading, toggleEquipment, setDifficulty, setDuration, setAccentColor, toggleSound, toggleAICoach, setGroqApiKey }
+  const setExerciseGrouping = useCallback(async (mode: 'circuit' | 'grouped') => {
+    const updated = await updateSettings({ exerciseGrouping: mode })
+    setSettings(updated)
+  }, [])
+
+  return { settings, loading, toggleEquipment, setDifficulty, setDuration, setAccentColor, toggleSound, toggleAICoach, setGroqApiKey, setExerciseGrouping }
 }

@@ -62,6 +62,7 @@ const DEFAULT_SETTINGS: UserSettings = {
   defaultDurationMinutes: 60,
   accentColor: 'signal-red',
   soundEnabled: true,
+  exerciseGrouping: 'circuit',
   enableAICoach: false,
   groqApiKey: undefined,
 }
