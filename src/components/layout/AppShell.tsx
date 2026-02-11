@@ -1,5 +1,6 @@
 import { Outlet, useLocation } from 'react-router-dom'
 import BottomNav from './BottomNav'
+import FooterWatermark from './FooterWatermark'
 
 export default function AppShell() {
   const location = useLocation()
@@ -10,6 +11,7 @@ export default function AppShell() {
       <main className={`flex-1 max-w-lg mx-auto w-full ${isWorkout ? '' : 'pb-24'}`}>
         <Outlet />
       </main>
+      <FooterWatermark />
       <BottomNav />
     </div>
   )

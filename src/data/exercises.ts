@@ -37,7 +37,7 @@ export const exercises: Exercise[] = [
     difficulty: 'beginner',
     equipment: [],
     repScheme: { type: 'reps', defaultReps: 12 },
-    animationId: 'pushup',
+    animationId: 'pushupWide',
   },
   {
     id: 'diamond-push-up',
@@ -55,7 +55,7 @@ export const exercises: Exercise[] = [
     difficulty: 'intermediate',
     equipment: [],
     repScheme: { type: 'reps', defaultReps: 10 },
-    animationId: 'pushup',
+    animationId: 'pushupDiamond',
   },
   {
     id: 'decline-push-up',
@@ -127,7 +127,7 @@ export const exercises: Exercise[] = [
     difficulty: 'advanced',
     equipment: [],
     repScheme: { type: 'each-side', defaultReps: 6 },
-    animationId: 'pushup',
+    animationId: 'pushupArcher',
   },
   {
     id: 'clap-push-up',
@@ -182,7 +182,7 @@ export const exercises: Exercise[] = [
     difficulty: 'intermediate',
     equipment: ['push-up-bars'],
     repScheme: { type: 'reps', defaultReps: 10 },
-    animationId: 'pushup',
+    animationId: 'pushupWide',
   },
   {
     id: 'pseudo-planche-push-up',
@@ -312,7 +312,7 @@ export const exercises: Exercise[] = [
     difficulty: 'advanced',
     equipment: ['pull-up-bar'],
     repScheme: { type: 'reps', defaultReps: 5 },
-    animationId: 'pullup',
+    animationId: 'pullupWide',
     restModifier: 1.5,
   },
   {
@@ -387,7 +387,7 @@ export const exercises: Exercise[] = [
     difficulty: 'beginner',
     equipment: ['resistance-bands'],
     repScheme: { type: 'reps', defaultReps: 12 },
-    animationId: 'bandPull',
+    animationId: 'row',
   },
   {
     id: 'superman-hold',
@@ -461,7 +461,7 @@ export const exercises: Exercise[] = [
     difficulty: 'intermediate',
     equipment: ['push-up-bars'],
     repScheme: { type: 'reps', defaultReps: 10 },
-    animationId: 'pushup',
+    animationId: 'pushupDiamond',
   },
   {
     id: 'push-up-bar-decline',
@@ -515,7 +515,7 @@ export const exercises: Exercise[] = [
     difficulty: 'intermediate',
     equipment: ['push-up-bars'],
     repScheme: { type: 'each-side', defaultReps: 8 },
-    animationId: 'pushup',
+    animationId: 'pushupWide',
   },
 
   // === PUSH (Equipment) ===
@@ -591,7 +591,7 @@ export const exercises: Exercise[] = [
     difficulty: 'beginner',
     equipment: ['dumbbell'],
     repScheme: { type: 'each-side', defaultReps: 10 },
-    animationId: 'bandPull',
+    animationId: 'row',
   },
   {
     id: 'dumbbell-bicep-curl',
@@ -609,7 +609,7 @@ export const exercises: Exercise[] = [
     difficulty: 'beginner',
     equipment: ['dumbbell'],
     repScheme: { type: 'reps', defaultReps: 12 },
-    animationId: 'bandPull',
+    animationId: 'bicepCurl',
   },
   {
     id: 'band-bicep-curl',
@@ -627,7 +627,7 @@ export const exercises: Exercise[] = [
     difficulty: 'beginner',
     equipment: ['resistance-bands'],
     repScheme: { type: 'reps', defaultReps: 15 },
-    animationId: 'bandPull',
+    animationId: 'bicepCurl',
   },
   {
     id: 'dead-hang',
@@ -685,7 +685,7 @@ export const exercises: Exercise[] = [
     difficulty: 'beginner',
     equipment: [],
     repScheme: { type: 'reps', defaultReps: 15 },
-    animationId: 'squat',
+    animationId: 'sumoSquat',
   },
   {
     id: 'jump-squat',
@@ -722,7 +722,7 @@ export const exercises: Exercise[] = [
     difficulty: 'intermediate',
     equipment: [],
     repScheme: { type: 'each-side', defaultReps: 10 },
-    animationId: 'lunge',
+    animationId: 'splitSquat',
   },
   {
     id: 'pistol-squat',
@@ -740,7 +740,7 @@ export const exercises: Exercise[] = [
     difficulty: 'advanced',
     equipment: [],
     repScheme: { type: 'each-side', defaultReps: 4 },
-    animationId: 'squat',
+    animationId: 'pistolSquat',
     restModifier: 1.5,
   },
   {
@@ -795,7 +795,7 @@ export const exercises: Exercise[] = [
     difficulty: 'intermediate',
     equipment: [],
     repScheme: { type: 'each-side', defaultReps: 8 },
-    animationId: 'lunge',
+    animationId: 'lateralLunge',
   },
   {
     id: 'curtsy-lunge',
@@ -961,7 +961,7 @@ export const exercises: Exercise[] = [
     difficulty: 'intermediate',
     equipment: ['dumbbell'],
     repScheme: { type: 'reps', defaultReps: 10 },
-    animationId: 'squat',
+    animationId: 'hipHinge',
   },
   {
     id: 'dumbbell-calf-raise',
@@ -998,7 +998,7 @@ export const exercises: Exercise[] = [
     difficulty: 'intermediate',
     equipment: ['dumbbell'],
     repScheme: { type: 'reps', defaultReps: 12 },
-    animationId: 'squat',
+    animationId: 'sumoSquat',
   },
   {
     id: 'banded-squat',
@@ -1052,7 +1052,7 @@ export const exercises: Exercise[] = [
     difficulty: 'intermediate',
     equipment: ['resistance-bands'],
     repScheme: { type: 'reps', defaultReps: 12 },
-    animationId: 'squat',
+    animationId: 'hipHinge',
   },
 
   // ===== CORE (14) =====
