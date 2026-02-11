@@ -128,7 +128,7 @@ export default function WorkoutPreview({ workout, onRegenerate, onStart }: Worko
         <TimedStatCard seconds={stats.totalTimedSeconds} delay={360} />
         <StatCard value={stats.intensityScore} label="INTENSITY" unit="/100" delay={440} />
         <StatCard value={workout.totalEstimatedMinutes} label="DURATION" unit="MIN" delay={520} />
-        <StatCard value={workout.mainWorkout.blocks.length} label="CIRCUITS" delay={600} />
+        <StatCard value={workout.mainWorkout.blocks.length} label={workout.config.grouping === 'sequential' ? 'EXERCISES' : 'CIRCUITS'} delay={600} />
       </motion.div>
 
       {/* ── Muscle Coverage ── */}
@@ -181,7 +181,7 @@ export default function WorkoutPreview({ workout, onRegenerate, onStart }: Worko
 
       {/* ── Circuit Detail ── */}
       <motion.div variants={itemVariants} className="card-base p-4">
-        <p className="section-header mb-3">// CIRCUIT INTEL</p>
+        <p className="section-header mb-3">// {workout.config.grouping === 'sequential' ? 'EXERCISE INTEL' : 'CIRCUIT INTEL'}</p>
         <div className="space-y-4">
           {workout.mainWorkout.blocks.map((block: CircuitBlock) => {
             const muscles = stats.circuitMuscles.get(block.name) || []

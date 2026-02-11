@@ -31,6 +31,13 @@ const REST_BETWEEN_ROUNDS: Record<Difficulty, number> = {
   advanced: 30,
 }
 
+/** Rest between sets in sequential mode (seconds) — longer since same muscle is taxed repeatedly */
+const REST_BETWEEN_SETS_SEQUENTIAL: Record<Difficulty, number> = {
+  beginner: 90,
+  intermediate: 60,
+  advanced: 45,
+}
+
 /** Max exercises per circuit */
 const EXERCISES_PER_CIRCUIT: Record<Difficulty, number> = {
   beginner: 4,
@@ -281,6 +288,84 @@ function generateMainWorkout(
   }
 }
 
+function generateMainWorkoutSequential(
+  eligible: Exercise[],
+  targetMinutes: number,
+  focus: ExerciseCategory | 'balanced',
+  difficulty: Difficulty
+): WorkoutPhase {
+  const weights = CATEGORY_WEIGHTS[focus]
+  const mainPool = eligible.filter(e => !e.isWarmUp || e.category !== 'flexibility')
+  const usedIds = new Set<string>()
+  const blocks: CircuitBlock[] = []
+  const configLevel = DIFFICULTY_LEVEL[difficulty]
+
+  const categoryOrder: ExerciseCategory[] = ['push', 'legs', 'pull', 'core', 'cardio']
+  let totalSeconds = 0
+  const targetSeconds = targetMinutes * 60
+  const sets = ROUNDS_BY_DIFFICULTY[difficulty]
+  const restBetweenSets = REST_BETWEEN_SETS_SEQUENTIAL[difficulty]
+
+  const maxTotalExercises = 4 * EXERCISES_PER_CIRCUIT[difficulty]
+  let exerciseNum = 0
+  let categoryIndex = 0
+
+  while (totalSeconds < targetSeconds && exerciseNum < maxTotalExercises) {
+    const cat = categoryOrder[categoryIndex % categoryOrder.length]
+    categoryIndex++
+
+    const catPool = mainPool.filter(e =>
+      e.category === cat && !usedIds.has(e.id)
+    )
+
+    let pick: Exercise | null = null
+    if (catPool.length > 0) {
+      pick = scoreAndPick(catPool, weights[cat], configLevel)
+    } else {
+      const remainingPool = mainPool.filter(e => !usedIds.has(e.id))
+      if (remainingPool.length === 0) break
+      pick = scoreAndPick(remainingPool, 0.2, configLevel)
+    }
+
+    if (!pick) break
+    usedIds.add(pick.id)
+    exerciseNum++
+
+    const we = makeWorkoutExercise(pick, difficulty)
+
+    const block: CircuitBlock = {
+      type: 'circuit',
+      name: pick.name,
+      rounds: sets,
+      restBetweenExercises: 0,
+      restBetweenRounds: restBetweenSets,
+      exercises: [we],
+    }
+
+    const blockTime = estimateCircuitTime(block)
+    const transitionRest = exerciseNum > 1 ? 15 : 0
+
+    if (totalSeconds + blockTime + transitionRest > targetSeconds + 180) {
+      block.rounds = Math.max(2, sets - 1)
+      const reducedTime = estimateCircuitTime(block)
+      if (totalSeconds + reducedTime + transitionRest <= targetSeconds + 180) {
+        totalSeconds += reducedTime + transitionRest
+        blocks.push(block)
+      }
+      break
+    }
+
+    totalSeconds += blockTime + transitionRest
+    blocks.push(block)
+  }
+
+  return {
+    name: 'Main Workout',
+    estimatedMinutes: Math.ceil(totalSeconds / 60),
+    blocks,
+  }
+}
+
 export function generateWorkout(config: WorkoutConfig): GeneratedWorkout {
   const eligible = getEligibleExercises(config)
   // Warm-up/cool-down always use full pool (no equipment-only filter)
@@ -294,7 +379,9 @@ export function generateWorkout(config: WorkoutConfig): GeneratedWorkout {
   const mainMinutes = config.totalMinutes - warmUpMinutes - coolDownMinutes - 3 // 3 min buffer
 
   const warmUp = generateWarmUp(warmCoolEligible)
-  const mainWorkout = generateMainWorkout(eligible, mainMinutes, config.focus || 'balanced', config.difficulty)
+  const mainWorkout = config.grouping === 'sequential'
+    ? generateMainWorkoutSequential(eligible, mainMinutes, config.focus || 'balanced', config.difficulty)
+    : generateMainWorkout(eligible, mainMinutes, config.focus || 'balanced', config.difficulty)
   const coolDown = generateCoolDown(warmCoolEligible, [])
 
   // Count muscle coverage

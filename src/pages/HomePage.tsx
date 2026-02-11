@@ -61,6 +61,7 @@ export default function HomePage() {
         difficulty: settings.defaultDifficulty,
         focus,
         equipmentOnly,
+        grouping: settings.workoutGrouping,
       })
       setGeneratedWorkout(workout)
       setGenerating(false)

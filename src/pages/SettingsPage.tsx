@@ -17,7 +17,7 @@ const difficulties: { value: Difficulty; label: string; code: string }[] = [
 ]
 
 export default function SettingsPage() {
-  const { settings, toggleEquipment, setDifficulty, setDuration, setAccentColor, toggleSound } = useSettings()
+  const { settings, toggleEquipment, setDifficulty, setDuration, setAccentColor, toggleSound, setWorkoutGrouping } = useSettings()
   const { clearHistory, history } = useWorkoutHistory()
   const sound = useSound()
   const [showClearConfirm, setShowClearConfirm] = useState(false)
@@ -109,6 +109,36 @@ export default function SettingsPage() {
             </button>
           ))}
         </div>
+      </section>
+
+      {/* Training Mode */}
+      <section className="mb-8 border-l-2 border-primary-500/30 pl-3">
+        <p className="section-header mb-3"><span className="text-primary-500">//</span> TRAINING MODE</p>
+        <div className="flex gap-2">
+          {([
+            { value: 'circuit' as const, label: 'CIRCUIT', code: 'CIR' },
+            { value: 'sequential' as const, label: 'SEQUENTIAL', code: 'SEQ' },
+          ]).map(mode => (
+            <button
+              key={mode.value}
+              onClick={() => { sound.select(); setWorkoutGrouping(mode.value) }}
+              className={cn(
+                'flex-1 py-3 text-xs font-heading font-bold transition-all text-center tracking-wider border',
+                settings.workoutGrouping === mode.value
+                  ? 'bg-primary-600 text-white border-primary-500'
+                  : 'bg-surface-1 text-text-muted border-surface-3'
+              )}
+            >
+              <span className="block text-[10px] font-mono text-text-ghost">{mode.code}</span>
+              {mode.label}
+            </button>
+          ))}
+        </div>
+        <p className="text-[10px] text-text-ghost font-mono mt-2 tracking-wider">
+          {settings.workoutGrouping === 'circuit'
+            ? 'ROTATE THROUGH EXERCISES IN CIRCUITS'
+            : 'COMPLETE ALL SETS BEFORE NEXT EXERCISE'}
+        </p>
       </section>
 
       {/* Audio */}

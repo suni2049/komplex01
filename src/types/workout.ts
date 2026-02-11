@@ -1,5 +1,7 @@
 import type { Exercise, ExerciseCategory, Equipment, Difficulty, MuscleGroup } from './exercise'
 
+export type WorkoutGrouping = 'circuit' | 'sequential'
+
 export interface WorkoutConfig {
   totalMinutes: number
   availableEquipment: Equipment[]
@@ -7,6 +9,7 @@ export interface WorkoutConfig {
   excludeExerciseIds?: string[]
   focus?: ExerciseCategory | 'balanced'
   equipmentOnly?: boolean
+  grouping?: WorkoutGrouping
 }
 
 export interface WorkoutExercise {

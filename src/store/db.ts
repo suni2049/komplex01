@@ -1,5 +1,5 @@
 import { openDB, type IDBPDatabase, type DBSchema } from 'idb'
-import type { WorkoutHistoryEntry } from '../types/workout'
+import type { WorkoutHistoryEntry, WorkoutGrouping } from '../types/workout'
 import type { Equipment, Difficulty } from '../types/exercise'
 
 interface UserSettings {
@@ -9,6 +9,7 @@ interface UserSettings {
   defaultDurationMinutes: number
   accentColor: string
   soundEnabled: boolean
+  workoutGrouping: WorkoutGrouping
 }
 
 interface CaliDB extends DBSchema {

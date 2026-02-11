@@ -62,6 +62,7 @@ const DEFAULT_SETTINGS: UserSettings = {
   defaultDurationMinutes: 60,
   accentColor: 'signal-red',
   soundEnabled: true,
+  workoutGrouping: 'circuit',
 }
 
 export async function getSettings(): Promise<UserSettings> {

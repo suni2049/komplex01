@@ -3,6 +3,7 @@ import { getSettings, updateSettings } from '../store/storage'
 import { applyThemeColors } from './useTheme'
 import type { UserSettings } from '../store/db'
 import type { Equipment, Difficulty } from '../types/exercise'
+import type { WorkoutGrouping } from '../types/workout'
 
 export function useSettings() {
   const [settings, setSettings] = useState<UserSettings>({
@@ -12,6 +13,7 @@ export function useSettings() {
     defaultDurationMinutes: 60,
     accentColor: 'signal-red',
     soundEnabled: true,
+    workoutGrouping: 'circuit',
   })
   const [loading, setLoading] = useState(true)
 
@@ -51,5 +53,10 @@ export function useSettings() {
     setSettings(updated)
   }, [settings.soundEnabled])
 
-  return { settings, loading, toggleEquipment, setDifficulty, setDuration, setAccentColor, toggleSound }
+  const setWorkoutGrouping = useCallback(async (g: WorkoutGrouping) => {
+    const updated = await updateSettings({ workoutGrouping: g })
+    setSettings(updated)
+  }, [])
+
+  return { settings, loading, toggleEquipment, setDifficulty, setDuration, setAccentColor, toggleSound, setWorkoutGrouping }
 }
