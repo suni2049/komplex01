@@ -4,12 +4,18 @@ import { motion, AnimatePresence } from 'framer-motion'
 import StickFigure from '../components/stickfigure/StickFigure'
 import { useTimer, useStopwatch } from '../hooks/useTimer'
 import { useWorkoutHistory } from '../hooks/useWorkoutHistory'
+import { useSettings } from '../hooks/useSettings'
 import { formatSeconds } from '../utils/formatTime'
 import { generateId } from '../utils/id'
 import { cn } from '../utils/cn'
 import { IconStarFilled, IconCheck } from '../components/icons/Icons'
 import { useSound } from '../hooks/useSound'
+import AICoachButton from '../components/aicoach/AICoachButton'
+import AICoachPanel from '../components/aicoach/AICoachPanel'
+import { groqService } from '../lib/groqService'
+import { buildWorkoutContext, buildSystemPrompt } from '../lib/workoutContextBuilder'
 import type { GeneratedWorkout, WorkoutExercise, CircuitBlock } from '../types/workout'
+import type { ChatMessage, QuickAction, AICoachError } from '../types/aiCoach'
 
 interface FlatExercise {
   exercise: WorkoutExercise
@@ -49,6 +55,7 @@ function flattenWorkout(workout: GeneratedWorkout): FlatExercise[] {
 export default function ActiveWorkoutPage() {
   const navigate = useNavigate()
   const { save } = useWorkoutHistory()
+  const { settings } = useSettings()
   const sound = useSound()
 
   const workout = useMemo<GeneratedWorkout | null>(() => {
@@ -68,6 +75,13 @@ export default function ActiveWorkoutPage() {
   const [showFavoriteRename, setShowFavoriteRename] = useState(false)
   const [favoriteName, setFavoriteName] = useState('')
   const favoriteInputRef = useRef<HTMLInputElement>(null)
+
+  // AI Coach state
+  const [showAICoach, setShowAICoach] = useState(false)
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([])
+  const [isAIThinking, setIsAIThinking] = useState(false)
+  const [aiError, setAiError] = useState<AICoachError | null>(null)
+  const lastExerciseIndexRef = useRef<number>(-1)
 
   const stopwatch = useStopwatch()
 
@@ -174,6 +188,80 @@ export default function ActiveWorkoutPage() {
       timer.pause()
     }
   }, [isPaused, stopwatch, timer, isResting, sound])
+
+  // AI Coach handlers
+  const handleOpenAICoach = useCallback(() => {
+    if (!settings.enableAICoach) return
+    if (settings.groqApiKey) {
+      groqService.initialize(settings.groqApiKey)
+    }
+    setShowAICoach(true)
+    setAiError(null)
+  }, [settings])
+
+  const handleCloseAICoach = useCallback(() => {
+    setShowAICoach(false)
+  }, [])
+
+  const handleSendMessage = useCallback(async (userMessage: string) => {
+    if (!current) return
+
+    const userChatMessage: ChatMessage = {
+      id: generateId(),
+      role: 'user',
+      content: userMessage,
+      timestamp: new Date().toISOString(),
+    }
+
+    setChatMessages(prev => [...prev, userChatMessage])
+    setIsAIThinking(true)
+    setAiError(null)
+
+    const context = buildWorkoutContext(current)
+    const systemPrompt = buildSystemPrompt(context)
+
+    const { message, error } = await groqService.sendMessage(
+      userMessage,
+      systemPrompt,
+      chatMessages
+    )
+
+    setIsAIThinking(false)
+
+    if (error) {
+      setAiError(error)
+    } else if (message) {
+      const assistantMessage: ChatMessage = {
+        id: generateId(),
+        role: 'assistant',
+        content: message,
+        timestamp: new Date().toISOString(),
+      }
+      setChatMessages(prev => [...prev, assistantMessage])
+    }
+  }, [current, chatMessages])
+
+  const handleQuickAction = useCallback((action: QuickAction) => {
+    handleSendMessage(action.prompt)
+  }, [handleSendMessage])
+
+  const handleRetry = useCallback(() => {
+    if (chatMessages.length > 0) {
+      const lastUserMessage = [...chatMessages].reverse().find(msg => msg.role === 'user')
+      if (lastUserMessage) {
+        handleSendMessage(lastUserMessage.content)
+      }
+    }
+  }, [chatMessages, handleSendMessage])
+
+  // Reset chat when exercise changes
+  useEffect(() => {
+    if (currentIndex !== lastExerciseIndexRef.current) {
+      lastExerciseIndexRef.current = currentIndex
+      setChatMessages([])
+      setAiError(null)
+    }
+  }, [currentIndex])
 
   const handleComplete = useCallback(async () => {
     if (!workout) return
@@ -604,6 +692,23 @@ export default function ActiveWorkoutPage() {
             : <><span className="mr-1">DONE</span> <IconCheck className="w-4 h-4" /></>}
         </motion.button>
       </div>
+
+      {/* AI Coach Button (FAB) */}
+      {settings.enableAICoach && !isResting && !showQuitConfirm && !isComplete && (
+        <AICoachButton onClick={handleOpenAICoach} />
+      )}
+
+      {/* AI Coach Panel */}
+      <AICoachPanel
+        isOpen={showAICoach}
+        onClose={handleCloseAICoach}
+        messages={chatMessages}
+        onSendMessage={handleSendMessage}
+        onQuickAction={handleQuickAction}
+        isThinking={isAIThinking}
+        error={aiError}
+        onRetry={handleRetry}
+      />
     </motion.div>
   )
 }
