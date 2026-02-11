@@ -6,8 +6,8 @@ interface AICoachButtonProps {
   className?: string
 }
 
-// Brain icon for AI Coach
-function BrainIcon({ className }: { className?: string }) {
+// AI Sparkle icon - custom design
+function AIIcon({ className }: { className?: string }) {
   return (
     <svg
       className={cn('w-6 h-6', className)}
@@ -16,10 +16,18 @@ function BrainIcon({ className }: { className?: string }) {
       stroke="currentColor"
       strokeWidth={2}
     >
+      {/* Chat bubble */}
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
-        d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
+        d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+      />
+      {/* Sparkle on top */}
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M12 3l.5 1.5L14 5l-1.5.5L12 7l-.5-1.5L10 5l1.5-.5L12 3z"
+        fill="currentColor"
       />
     </svg>
   )
@@ -47,7 +55,7 @@ export default function AICoachButton({ onClick, className }: AICoachButtonProps
       whileTap={{ scale: 0.9 }}
       transition={{ type: 'spring', damping: 15, stiffness: 300 }}
     >
-      <BrainIcon className="w-6 h-6" />
+      <AIIcon className="w-6 h-6" />
     </motion.button>
   )
 }

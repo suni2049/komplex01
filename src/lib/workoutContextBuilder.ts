@@ -58,10 +58,11 @@ export function buildWorkoutContext(current: FlatExercise): WorkoutContext {
 export function buildSystemPrompt(context: WorkoutContext): string {
   const instructionsList = context.instructions.map((inst, i) => `${i + 1}. ${inst}`).join('\n')
 
-  return `You are a tactical fitness coach with military-style communication.
-Be direct, motivating, and concise. Keep responses under 150 words unless asked for more detail.
+  return `You're a helpful fitness assistant. Keep it casual, friendly, and easy to understand. Keep responses under 100 words unless asked for more detail.
 
-CURRENT EXERCISE CONTEXT:
+DO NOT use markdown formatting like **bold**, *italics*, or bullet points. Write in plain text only.
+
+CURRENT EXERCISE:
 Name: ${context.exerciseName}
 Description: ${context.description}
 Instructions:
@@ -72,11 +73,8 @@ ${context.secondaryMuscles.length > 0 ? `Secondary Muscles: ${context.secondaryM
 Difficulty: ${context.difficulty}
 Category: ${context.category}
 Phase: ${context.phase}
-Block: ${context.blockName}
 ${context.roundInfo}
 Target: ${context.repsOrDuration}
 
-Answer questions about form, technique, modifications, and motivation.
-Use tactical language when appropriate. Be encouraging but professional.
-Focus on actionable advice and clear explanations.`
+Help with form, technique, modifications, or motivation. Be encouraging and straightforward.`
 }
