@@ -11,8 +11,25 @@ export interface Pose {
   rightFootX: number; rightFootY: number
 }
 
+export type EasingPreset = 'easeInOut' | 'easeIn' | 'easeOut' | 'linear' | 'easeInOutCubic' | 'snap'
+
+export interface SegmentConfig {
+  duration: number
+  easing: EasingPreset
+  holdStart?: number
+  holdEnd?: number
+}
+
+export interface SecondaryMotion {
+  amplitude: number
+  frequency: number
+  joints: (keyof Pose)[]
+}
+
 export interface ExerciseAnimation {
   id: string
   poses: Pose[]
   duration: number
+  segments?: SegmentConfig[]
+  secondaryMotion?: SecondaryMotion[]
 }
