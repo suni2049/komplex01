@@ -87,8 +87,6 @@ function getSegmentInfo(anim: ExerciseAnimation, elapsed: number): SegmentInfo {
       if (loopTime < accumulated + segTotal) {
         const segElapsed = loopTime - accumulated
         const holdStart = seg.holdStart || 0
-        const holdEnd = seg.holdEnd || 0
-
         if (segElapsed < holdStart) {
           return { index: i, progress: 0, easing: seg.easing }
         } else if (segElapsed > holdStart + seg.duration) {
