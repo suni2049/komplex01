@@ -8,6 +8,7 @@ import { analyzeWorkoutHistory, buildCoachContext } from '../lib/workoutHistoryA
 import { generateWorkout } from '../lib/workoutGenerator'
 import ChatMessage from '../components/aicoach/ChatMessage'
 import ChatInput from '../components/aicoach/ChatInput'
+import { IconTarget, IconLightning, IconChart, IconRecovery } from '../components/icons/Icons'
 import { nanoid } from 'nanoid'
 import type { ChatMessage as ChatMessageType, AICoachError } from '../types/aiCoach'
 import type { WorkoutConfig, GeneratedWorkout } from '../types/workout'
@@ -16,7 +17,7 @@ interface QuickCoachAction {
   id: string
   label: string
   prompt: string
-  icon: string
+  IconComponent: React.ComponentType<{ className?: string }>
 }
 
 const QUICK_COACH_ACTIONS: QuickCoachAction[] = [
@@ -24,25 +25,25 @@ const QUICK_COACH_ACTIONS: QuickCoachAction[] = [
     id: 'suggest-workout',
     label: 'Suggest Workout',
     prompt: 'Based on my recent training history, what workout should I do today? Consider muscle recovery and balance.',
-    icon: '💪',
+    IconComponent: IconTarget,
   },
   {
     id: 'generate-workout',
     label: 'Generate Workout',
     prompt: 'Generate a balanced workout for me today based on my training history. Make sure to avoid overworking recently trained muscles.',
-    icon: '⚡',
+    IconComponent: IconLightning,
   },
   {
     id: 'analyze-progress',
     label: 'Analyze Progress',
     prompt: 'Analyze my recent workout history. What muscle groups have I been focusing on? What areas might I be neglecting?',
-    icon: '📊',
+    IconComponent: IconChart,
   },
   {
     id: 'recovery-tips',
     label: 'Recovery Tips',
     prompt: 'Give me some recovery tips based on my recent workouts. What should I focus on for optimal recovery?',
-    icon: '🧘',
+    IconComponent: IconRecovery,
   },
 ]
 
@@ -155,11 +156,11 @@ export default function CoachPage() {
       const systemMsg: ChatMessageType = {
         id: nanoid(),
         role: 'assistant',
-        content: `✅ **Workout Generated!**
+        content: `**WORKOUT GENERATED**
 
-**${focusLabel} • ${config.totalMinutes} min • ${config.difficulty}**
+**${focusLabel} • ${config.totalMinutes} min • ${config.difficulty.toUpperCase()}**
 
-${reasoning ? `💡 ${reasoning}\n` : ''}
+${reasoning ? `**Reasoning:** ${reasoning}\n` : ''}
 **Workout Structure:**
 • ${workout.warmUp.estimatedMinutes} min warm-up (${workout.warmUp.blocks.reduce((sum, b) => sum + b.exercises.length, 0)} exercises)
 • ${workout.mainWorkout.estimatedMinutes} min main workout (${workout.mainWorkout.blocks.reduce((sum, b) => sum + b.exercises.length, 0)} exercises)
@@ -167,7 +168,7 @@ ${reasoning ? `💡 ${reasoning}\n` : ''}
 
 **Total: ${workout.totalExerciseCount} exercises**
 
-🎯 Starting workout now...`,
+Starting workout now...`,
         timestamp: new Date().toISOString(),
       }
 
@@ -358,19 +359,22 @@ Remember: When generating workouts, ALWAYS use the generate_workout tool - don't
         <div className="px-4 py-4 border-b border-surface-3 bg-surface-1">
           <p className="text-xs font-mono text-text-muted mb-3">Quick Actions:</p>
           <div className="grid grid-cols-2 gap-2">
-            {QUICK_COACH_ACTIONS.map((action) => (
-              <button
-                key={action.id}
-                onClick={() => handleQuickAction(action)}
-                disabled={isThinking}
-                className="px-3 py-2 bg-surface-2 hover:bg-surface-3 border border-surface-3 hover:border-primary-500 rounded text-left transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <div className="text-lg mb-1">{action.icon}</div>
-                <p className="text-[10px] font-mono font-bold text-text-primary tracking-wider">
-                  {action.label}
-                </p>
-              </button>
-            ))}
+            {QUICK_COACH_ACTIONS.map((action) => {
+              const Icon = action.IconComponent
+              return (
+                <button
+                  key={action.id}
+                  onClick={() => handleQuickAction(action)}
+                  disabled={isThinking}
+                  className="px-3 py-2 bg-surface-2 hover:bg-surface-3 border border-surface-3 hover:border-primary-500 rounded text-left transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Icon className="w-5 h-5 mb-1 text-primary-500" />
+                  <p className="text-[10px] font-mono font-bold text-text-primary tracking-wider">
+                    {action.label}
+                  </p>
+                </button>
+              )
+            })}
           </div>
         </div>
       )}
@@ -382,7 +386,7 @@ Remember: When generating workouts, ALWAYS use the generate_workout tool - don't
       >
         {displayMessages.length === 0 && !isThinking && !error && (
           <div className="text-center py-12">
-            <div className="text-5xl mb-4">🎯</div>
+            <IconTarget className="w-16 h-16 mx-auto mb-4 text-primary-500" />
             <p className="text-sm font-mono text-text-primary font-bold tracking-wider mb-2">
               READY FOR TRAINING
             </p>
@@ -402,6 +406,15 @@ Remember: When generating workouts, ALWAYS use the generate_workout tool - don't
               <p className="text-[10px] font-mono text-text-ghost">
                 • Ask about exercise form and techniques
               </p>
+            </div>
+            <div className="mt-6 px-4">
+              <div className="bg-surface-2 border border-surface-3 rounded p-3">
+                <p className="text-[10px] font-mono text-text-muted">
+                  <span className="text-primary-500 font-bold">TIP:</span> Just type naturally!
+                  <br />
+                  Try: "generate a push workout" or "I want to work legs today"
+                </p>
+              </div>
             </div>
           </div>
         )}
