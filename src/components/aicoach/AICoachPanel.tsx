@@ -139,8 +139,7 @@ export default function AICoachPanel({
               {/* Messages */}
               <div
                 ref={messagesContainerRef}
-                className="flex-1 overflow-y-auto px-4 py-3 hide-scrollbar"
-                style={{ minHeight: '200px', maxHeight: 'calc(85vh - 200px)' }}
+                className="flex-1 overflow-y-auto px-4 py-3 hide-scrollbar min-h-0"
               >
                 {displayMessages.length === 0 && !isThinking && !error && (
                   <div className="text-center py-8">
