@@ -156,19 +156,37 @@ export default function CoachPage() {
       const systemMsg: ChatMessageType = {
         id: nanoid(),
         role: 'assistant',
-        content: `**WORKOUT GENERATED**
+        content: `**✓ WORKOUT GENERATED SUCCESSFULLY**
 
-**${focusLabel} • ${config.totalMinutes} min • ${config.difficulty.toUpperCase()}**
+---
 
-${reasoning ? `**Reasoning:** ${reasoning}\n` : ''}
-**Workout Structure:**
-• ${workout.warmUp.estimatedMinutes} min warm-up (${workout.warmUp.blocks.reduce((sum, b) => sum + b.exercises.length, 0)} exercises)
-• ${workout.mainWorkout.estimatedMinutes} min main workout (${workout.mainWorkout.blocks.reduce((sum, b) => sum + b.exercises.length, 0)} exercises)
-• ${workout.coolDown.estimatedMinutes} min cool-down (${workout.coolDown.blocks.reduce((sum, b) => sum + b.exercises.length, 0)} exercises)
+**WORKOUT DETAILS:**
 
-**Total: ${workout.totalExerciseCount} exercises**
+**Type:** ${focusLabel}
+**Duration:** ${config.totalMinutes} minutes
+**Difficulty:** ${config.difficulty.toUpperCase()}
 
-Starting workout now...`,
+${reasoning ? `**Why this workout?**
+${reasoning}
+
+---
+
+` : ''}**WORKOUT BREAKDOWN:**
+
+**Warm-Up Phase** → ${workout.warmUp.estimatedMinutes} min
+• ${workout.warmUp.blocks.reduce((sum, b) => sum + b.exercises.length, 0)} exercises to prepare your body
+
+**Main Workout** → ${workout.mainWorkout.estimatedMinutes} min
+• ${workout.mainWorkout.blocks.reduce((sum, b) => sum + b.exercises.length, 0)} exercises for strength and conditioning
+
+**Cool-Down Phase** → ${workout.coolDown.estimatedMinutes} min
+• ${workout.coolDown.blocks.reduce((sum, b) => sum + b.exercises.length, 0)} exercises for recovery
+
+---
+
+**TOTAL:** ${workout.totalExerciseCount} exercises across all phases
+
+**STATUS:** Workout saved and ready to begin!`,
         timestamp: new Date().toISOString(),
       }
 
@@ -188,11 +206,27 @@ Starting workout now...`,
         name: `AI Coach: ${config.focus && config.focus !== 'balanced' ? config.focus.charAt(0).toUpperCase() + config.focus.slice(1) : 'Balanced'} Workout`,
       })
 
+      // Add launching message with countdown
+      const launchMsg: ChatMessageType = {
+        id: nanoid(),
+        role: 'assistant',
+        content: `**→ LAUNCHING WORKOUT SESSION**
+
+Starting in 2 seconds...
+
+**Get ready to train!**`,
+        timestamp: new Date().toISOString(),
+      }
+
+      setTimeout(() => {
+        setMessages(prev => [...prev, launchMsg])
+      }, 500)
+
       // Store workout in sessionStorage and navigate
       setTimeout(() => {
         sessionStorage.setItem('activeWorkout', JSON.stringify(workoutWithMetadata))
         navigate('/workout')
-      }, 1500)
+      }, 2500)
 
     } catch (err) {
       console.error('Failed to generate workout:', err)
