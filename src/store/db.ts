@@ -43,4 +43,4 @@ export function getDB() {
   return dbPromise
 }
 
-export type { UserSettings }
+export type { UserSettings, WorkoutHistoryEntry }

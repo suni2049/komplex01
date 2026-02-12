@@ -6,6 +6,7 @@ import HistoryPage from './pages/HistoryPage'
 import FavoritesPage from './pages/FavoritesPage'
 import SettingsPage from './pages/SettingsPage'
 import ExerciseBrowserPage from './pages/ExerciseBrowserPage'
+import CoachPage from './pages/CoachPage'
 import { useApplyTheme } from './hooks/useTheme'
 
 export default function App() {
@@ -18,6 +19,7 @@ export default function App() {
           <Route index element={<HomePage />} />
           <Route path="workout" element={<ActiveWorkoutPage />} />
           <Route path="history" element={<HistoryPage />} />
+          <Route path="coach" element={<CoachPage />} />
           <Route path="favorites" element={<FavoritesPage />} />
           <Route path="settings" element={<SettingsPage />} />
           <Route path="exercises" element={<ExerciseBrowserPage />} />

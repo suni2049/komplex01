@@ -60,4 +60,5 @@ export interface WorkoutHistoryEntry {
   exercisesCompleted: number
   exercisesSkipped: number
   isFavorite: boolean
+  isTemplate?: boolean // True if this is an AI-generated template (not yet completed)
 }
