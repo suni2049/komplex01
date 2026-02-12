@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { groqService } from '../lib/groqService'
@@ -103,49 +103,40 @@ export default function CoachPage() {
     }
   }, [messages, isThinking])
 
-  const parseWorkoutFromResponse = useCallback((response: string): WorkoutConfig | null => {
-    // Try to detect if the AI is suggesting a workout generation
-    const lowerResponse = response.toLowerCase()
+  // Define the workout generation tool for AI function calling
+  const workoutGenerationTool = useMemo(() => ({
+    type: 'function' as const,
+    function: {
+      name: 'generate_workout',
+      description: 'Generate a personalized workout based on parameters. Use this when the user asks you to create or generate a workout for them.',
+      parameters: {
+        type: 'object',
+        properties: {
+          focus: {
+            type: 'string',
+            enum: ['push', 'pull', 'legs', 'core', 'cardio', 'flexibility', 'balanced'],
+            description: 'The workout focus area. Choose based on user history and preferences. Use "balanced" for full-body workouts.',
+          },
+          durationMinutes: {
+            type: 'number',
+            description: 'Workout duration in minutes (15-90). Use user preferences if not specified.',
+          },
+          difficulty: {
+            type: 'string',
+            enum: ['beginner', 'intermediate', 'advanced'],
+            description: 'Difficulty level based on user preferences.',
+          },
+          reasoning: {
+            type: 'string',
+            description: 'Brief explanation (1-2 sentences) of why this workout plan is optimal for the user right now.',
+          },
+        },
+        required: ['focus', 'durationMinutes', 'difficulty', 'reasoning'],
+      },
+    },
+  }), [])
 
-    // Look for workout generation keywords
-    const isGenerating =
-      lowerResponse.includes('generate') ||
-      lowerResponse.includes('creating a workout') ||
-      lowerResponse.includes("let's create") ||
-      lowerResponse.includes('here is a workout') ||
-      lowerResponse.includes("i'll generate")
-
-    if (!isGenerating) {
-      return null
-    }
-
-    // Extract workout parameters from the response
-    const config: WorkoutConfig = {
-      totalMinutes: settings.defaultDurationMinutes || 45,
-      availableEquipment: settings.equipment || ['none'],
-      difficulty: settings.defaultDifficulty || 'intermediate',
-      focus: 'balanced',
-    }
-
-    // Try to detect focus area
-    if (lowerResponse.includes('upper body') || lowerResponse.includes('push') || lowerResponse.includes('pull')) {
-      const analysis = analyzeWorkoutHistory(history)
-      // If recently worked push, suggest pull
-      if (analysis.recentlyWorkedMuscles.some(m => ['chest', 'shoulders', 'triceps'].includes(m))) {
-        config.focus = 'pull'
-      } else if (analysis.recentlyWorkedMuscles.some(m => ['upper-back', 'lats', 'biceps'].includes(m))) {
-        config.focus = 'push'
-      }
-    } else if (lowerResponse.includes('legs') || lowerResponse.includes('lower body')) {
-      config.focus = 'legs'
-    } else if (lowerResponse.includes('core') || lowerResponse.includes('abs')) {
-      config.focus = 'core'
-    }
-
-    return config
-  }, [settings, history])
-
-  const generateAndSaveWorkout = useCallback(async (config: WorkoutConfig) => {
+  const generateAndSaveWorkout = useCallback(async (config: WorkoutConfig, reasoning?: string) => {
     try {
       const workout = generateWorkout(config)
 
@@ -157,10 +148,26 @@ export default function CoachPage() {
       }
 
       // Add system message to indicate workout generation
+      const focusLabel = config.focus && config.focus !== 'balanced'
+        ? config.focus.charAt(0).toUpperCase() + config.focus.slice(1) + '-Focused'
+        : 'Balanced'
+
       const systemMsg: ChatMessageType = {
         id: nanoid(),
         role: 'assistant',
-        content: `✅ **Workout Generated!**\n\nI've created a ${config.totalMinutes}-minute ${config.focus && config.focus !== 'balanced' ? config.focus + ' focused' : 'balanced'} workout for you.\n\nThe workout includes:\n- ${workout.warmUp.estimatedMinutes} min warm-up\n- ${workout.mainWorkout.estimatedMinutes} min main workout\n- ${workout.coolDown.estimatedMinutes} min cool-down\n\n**Total exercises:** ${workout.totalExerciseCount}\n\nClick "Start This Workout" below to begin!`,
+        content: `✅ **Workout Generated!**
+
+**${focusLabel} • ${config.totalMinutes} min • ${config.difficulty}**
+
+${reasoning ? `💡 ${reasoning}\n` : ''}
+**Workout Structure:**
+• ${workout.warmUp.estimatedMinutes} min warm-up (${workout.warmUp.blocks.reduce((sum, b) => sum + b.exercises.length, 0)} exercises)
+• ${workout.mainWorkout.estimatedMinutes} min main workout (${workout.mainWorkout.blocks.reduce((sum, b) => sum + b.exercises.length, 0)} exercises)
+• ${workout.coolDown.estimatedMinutes} min cool-down (${workout.coolDown.blocks.reduce((sum, b) => sum + b.exercises.length, 0)} exercises)
+
+**Total: ${workout.totalExerciseCount} exercises**
+
+🎯 Starting workout now...`,
         timestamp: new Date().toISOString(),
       }
 
@@ -237,25 +244,25 @@ USER PREFERENCES:
 - Difficulty level: ${settings.defaultDifficulty || 'intermediate'}
 - Typical workout duration: ${settings.defaultDurationMinutes || 45} minutes
 
-When suggesting workouts:
-1. Consider recent muscle group usage and recovery needs
-2. Avoid overworking recently trained muscles (worked in last 24h)
-3. Prioritize well-rested muscle groups
+When users ask you to create, generate, or suggest a workout:
+1. Use the generate_workout function to actually create the workout
+2. Choose focus based on their recent training (avoid recently worked muscles)
+3. Consider recovery needs (muscles worked in last 24h need rest)
 4. Balance training over time
-5. Use available equipment only
+5. Provide clear reasoning for your choices
 
-When asked to generate a workout:
-1. Clearly state you're generating a workout
-2. Explain the focus (push/pull/legs/core/balanced)
-3. Mention key exercises or muscle groups
-4. The system will automatically create and start the workout
+For other questions (exercise advice, form tips, recovery advice):
+- Respond conversationally and helpfully
+- Be encouraging and practical
+- Use bullet points for clarity
 
-Keep responses conversational, encouraging, and practical. Use bullet points for clarity.`
+Remember: When generating workouts, ALWAYS use the generate_workout tool - don't just describe a workout in text!`
 
-      const { message, error: apiError } = await groqService.sendMessage(
+      const { message, error: apiError, toolCalls } = await groqService.sendMessageWithTools(
         userMessage,
         systemPrompt,
-        messages
+        messages,
+        [workoutGenerationTool]
       )
 
       if (apiError) {
@@ -264,20 +271,49 @@ Keep responses conversational, encouraging, and practical. Use bullet points for
         return
       }
 
-      // Add assistant response
-      const assistantMsg: ChatMessageType = {
-        id: nanoid(),
-        role: 'assistant',
-        content: message,
-        timestamp: new Date().toISOString(),
-      }
-      setMessages((prev) => [...prev, assistantMsg])
+      // Check if AI wants to call the workout generation tool
+      if (toolCalls && toolCalls.length > 0) {
+        const toolCall = toolCalls[0]
 
-      // Check if AI wants to generate a workout
-      const workoutConfig = parseWorkoutFromResponse(message)
-      if (workoutConfig) {
-        // Generate and save the workout
-        await generateAndSaveWorkout(workoutConfig)
+        if (toolCall.function.name === 'generate_workout') {
+          try {
+            const args = JSON.parse(toolCall.function.arguments)
+
+            // Build workout config from AI's parameters
+            const config: WorkoutConfig = {
+              totalMinutes: args.durationMinutes || settings.defaultDurationMinutes || 45,
+              availableEquipment: settings.equipment || ['none'],
+              difficulty: args.difficulty || settings.defaultDifficulty || 'intermediate',
+              focus: args.focus || 'balanced',
+            }
+
+            // Generate and save the workout with AI's reasoning
+            await generateAndSaveWorkout(config, args.reasoning)
+
+            setIsThinking(false)
+            return
+          } catch (parseError) {
+            console.error('Failed to parse tool call arguments:', parseError)
+            setError({
+              type: 'unknown',
+              message: 'Failed to generate workout. Please try again.',
+              retryable: true,
+            })
+            setIsThinking(false)
+            return
+          }
+        }
+      }
+
+      // Add assistant response (for non-workout generation messages)
+      if (message) {
+        const assistantMsg: ChatMessageType = {
+          id: nanoid(),
+          role: 'assistant',
+          content: message,
+          timestamp: new Date().toISOString(),
+        }
+        setMessages((prev) => [...prev, assistantMsg])
       }
 
     } catch (err) {
@@ -290,7 +326,7 @@ Keep responses conversational, encouraging, and practical. Use bullet points for
     } finally {
       setIsThinking(false)
     }
-  }, [groqService, settings, history, messages, parseWorkoutFromResponse, generateAndSaveWorkout])
+  }, [groqService, settings, history, messages, workoutGenerationTool, generateAndSaveWorkout])
 
   const handleQuickAction = useCallback((action: QuickCoachAction) => {
     sendMessage(action.prompt)
