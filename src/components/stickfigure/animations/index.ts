@@ -905,7 +905,7 @@ export const animationRegistry: Record<string, ExerciseAnimation> = {
   // === HIGH KNEES (4 keyframes: L-up → transition → R-up → transition) ===
   highKnees: {
     id: 'highKnees',
-    duration: 800,
+    duration: 1800,
     poses: [
       // Left knee up
       { headX: 100, headY: 25, torsoEndX: 100, torsoEndY: 95,
@@ -933,17 +933,17 @@ export const animationRegistry: Record<string, ExerciseAnimation> = {
         rightKneeX: 105, rightKneeY: 115, rightFootX: 107, rightFootY: 145 },
     ],
     segments: [
-      { duration: 80, easing: 'snap' },
-      { duration: 80, easing: 'linear' },
-      { duration: 80, easing: 'snap' },
-      { duration: 80, easing: 'linear' },
+      { duration: 200, easing: 'snap' },
+      { duration: 180, easing: 'linear' },
+      { duration: 200, easing: 'snap' },
+      { duration: 180, easing: 'linear' },
     ],
   },
 
   // === JUMP ROPE ===
   jumpRope: {
     id: 'jumpRope',
-    duration: 600,
+    duration: 1000,
     poses: [
       { headX: 100, headY: 18, torsoEndX: 100, torsoEndY: 85,
         leftElbowX: 72, leftElbowY: 70, leftHandX: 60, leftHandY: 82,
@@ -957,8 +957,8 @@ export const animationRegistry: Record<string, ExerciseAnimation> = {
         rightKneeX: 108, rightKneeY: 125, rightFootX: 110, rightFootY: 165 },
     ],
     segments: [
-      { duration: 150, easing: 'easeIn' },
-      { duration: 150, easing: 'easeOut' },
+      { duration: 250, easing: 'easeIn' },
+      { duration: 250, easing: 'easeOut' },
     ],
   },
 

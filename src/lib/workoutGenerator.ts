@@ -1,8 +1,9 @@
 import type { Exercise, ExerciseCategory, Difficulty, MuscleGroup } from '../types/exercise'
-import type { WorkoutConfig, GeneratedWorkout, WorkoutPhase, CircuitBlock, WorkoutExercise } from '../types/workout'
+import type { WorkoutConfig, GeneratedWorkout, WorkoutPhase, CircuitBlock, WorkoutExercise, StretchPairingInfo } from '../types/workout'
 import { exercises } from '../data/exercises'
 import { pickRandom } from '../utils/shuffle'
 import { generateId } from '../utils/id'
+import { pairStretchesToWorkout } from './stretchPairing'
 
 const DIFFICULTY_LEVEL: Record<Difficulty, number> = {
   beginner: 1,
@@ -293,9 +294,55 @@ export function generateWorkout(config: WorkoutConfig): GeneratedWorkout {
   const coolDownMinutes = 5
   const mainMinutes = config.totalMinutes - warmUpMinutes - coolDownMinutes - 3 // 3 min buffer
 
-  const warmUp = generateWarmUp(warmCoolEligible)
+  // Generate main workout first so we can pair stretches to it
   const mainWorkout = generateMainWorkout(eligible, mainMinutes, config.focus || 'balanced', config.difficulty)
-  const coolDown = generateCoolDown(warmCoolEligible, [])
+
+  // Use muscle-aware stretch pairing algorithm
+  const pairing = pairStretchesToWorkout(mainWorkout, warmCoolEligible)
+
+  let warmUp: WorkoutPhase
+  let coolDown: WorkoutPhase
+  let stretchPairing: StretchPairingInfo | undefined
+
+  if (pairing.warmUpExercises.length >= 2 && pairing.coolDownExercises.length >= 2) {
+    // Stretch pairing succeeded — build phases from paired results
+    const warmUpBlock: CircuitBlock = {
+      type: 'circuit',
+      name: 'Warm-Up',
+      rounds: 1,
+      restBetweenExercises: 0,
+      restBetweenRounds: 0,
+      exercises: pairing.warmUpExercises,
+    }
+    warmUp = {
+      name: 'Warm-Up',
+      estimatedMinutes: Math.ceil(estimateCircuitTime(warmUpBlock) / 60),
+      blocks: [warmUpBlock],
+    }
+
+    const coolDownBlock: CircuitBlock = {
+      type: 'circuit',
+      name: 'Cool-Down',
+      rounds: 1,
+      restBetweenExercises: 0,
+      restBetweenRounds: 0,
+      exercises: pairing.coolDownExercises,
+    }
+    coolDown = {
+      name: 'Cool-Down',
+      estimatedMinutes: Math.ceil(estimateCircuitTime(coolDownBlock) / 60),
+      blocks: [coolDownBlock],
+    }
+
+    stretchPairing = {
+      targetedMuscles: pairing.targetedMuscles,
+      aiEnhanced: false,
+    }
+  } else {
+    // Fallback to random selection if pairing pool is too small
+    warmUp = generateWarmUp(warmCoolEligible)
+    coolDown = generateCoolDown(warmCoolEligible, [])
+  }
 
   // Count muscle coverage
   const muscleGroupCoverage: Partial<Record<MuscleGroup, number>> = {}
@@ -332,5 +379,37 @@ export function generateWorkout(config: WorkoutConfig): GeneratedWorkout {
     totalEstimatedMinutes,
     totalExerciseCount,
     muscleGroupCoverage,
+    stretchPairing,
+  }
+}
+
+/**
+ * Enhance an already-generated workout with AI stretch advice.
+ * Called asynchronously after initial generation when AI Coach is enabled.
+ */
+export async function enhanceWorkoutWithAI(workout: GeneratedWorkout): Promise<GeneratedWorkout> {
+  const { consultAIForStretches, applyAIAdjustments } = await import('./aiStretchAdvisor')
+
+  const warmUpExercises = workout.warmUp.blocks[0]?.exercises ?? []
+  const coolDownExercises = workout.coolDown.blocks[0]?.exercises ?? []
+
+  const advice = await consultAIForStretches(
+    workout.mainWorkout,
+    warmUpExercises,
+    coolDownExercises,
+  )
+
+  if (!advice) return workout
+
+  // Apply duration adjustments from AI
+  applyAIAdjustments(warmUpExercises, coolDownExercises, advice)
+
+  return {
+    ...workout,
+    stretchPairing: {
+      targetedMuscles: workout.stretchPairing?.targetedMuscles ?? [],
+      aiEnhanced: true,
+      aiReasoning: advice.reasoning,
+    },
   }
 }

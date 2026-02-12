@@ -181,6 +181,23 @@ export default function SettingsPage() {
           <span className="font-mono text-[10px]">[{settings.enableAICoach ? 'ENABLED' : 'DISABLED'}]</span>
         </button>
 
+        {/* AI Features Description */}
+        <div className={cn(
+          'mb-3 p-3 border text-[10px] font-mono leading-relaxed',
+          settings.enableAICoach
+            ? 'bg-primary-900/20 border-primary-500/30 text-text-secondary'
+            : 'bg-surface-1 border-surface-3 text-text-ghost'
+        )}>
+          <p className="text-xs font-heading font-bold tracking-wider mb-2 text-text-primary uppercase">
+            {settings.enableAICoach ? 'AI FEATURES ACTIVE' : 'AI FEATURES AVAILABLE'}
+          </p>
+          <div className="space-y-1.5">
+            <p><span className="text-primary-500">STRETCH PAIRING</span> — AI analyzes your workout and optimizes warm-up and cool-down stretches to target your most-worked muscles, reducing next-day soreness.</p>
+            <p><span className="text-primary-500">LIVE COACHING</span> — Real-time form guidance, common mistakes, and exercise modifications during your workout.</p>
+            <p><span className="text-primary-500">RECOVERY INTEL</span> — Flags high-risk muscle groups and adjusts stretch hold durations based on your workout intensity.</p>
+          </div>
+        </div>
+
         {/* API Key Input */}
         <div className="bg-surface-1 border border-surface-3 p-3">
           <label className="block text-[10px] font-mono text-text-muted mb-2 tracking-wider">GROQ API KEY</label>
