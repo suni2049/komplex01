@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { generateWorkout } from '../lib/workoutGenerator'
+import { generateWorkout, enhanceWorkoutWithAI } from '../lib/workoutGenerator'
 import { useSettings } from '../hooks/useSettings'
 import { useWorkoutHistory } from '../hooks/useWorkoutHistory'
 import { cn } from '../utils/cn'
@@ -54,7 +54,7 @@ export default function HomePage() {
   const handleGenerate = useCallback(() => {
     sound.generate()
     setGenerating(true)
-    setTimeout(() => {
+    setTimeout(async () => {
       const workout = generateWorkout({
         totalMinutes: settings.defaultDurationMinutes,
         availableEquipment: settings.equipment,
@@ -65,6 +65,14 @@ export default function HomePage() {
       setGeneratedWorkout(workout)
       setGenerating(false)
       sound.ready()
+
+      // If AI Coach is enabled, enhance stretches in the background
+      if (settings.enableAICoach && settings.groqApiKey) {
+        const enhanced = await enhanceWorkoutWithAI(workout)
+        if (enhanced !== workout) {
+          setGeneratedWorkout(enhanced)
+        }
+      }
     }, 600)
   }, [settings, focus, equipmentOnly, sound])
 

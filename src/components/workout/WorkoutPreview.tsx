@@ -6,7 +6,9 @@ import { cn } from '../../utils/cn'
 import StickFigure from '../stickfigure/StickFigure'
 import { IconStarFilled } from '../icons/Icons'
 import { useSound } from '../../hooks/useSound'
+import { muscleGroupLabels } from '../../data/muscles'
 import type { GeneratedWorkout, CircuitBlock, WorkoutExercise } from '../../types/workout'
+import type { MuscleGroup } from '../../types/exercise'
 
 interface WorkoutPreviewProps {
   workout: GeneratedWorkout
@@ -178,6 +180,31 @@ export default function WorkoutPreview({ workout, onRegenerate, onStart }: Worko
           ))}
         </div>
       </motion.div>
+
+      {/* ── Stretch Pairing Rationale ── */}
+      {workout.stretchPairing && (
+        <motion.div variants={itemVariants} className="card-base p-4">
+          <p className="section-header mb-2">// STRETCH PAIRING</p>
+          <p className="text-[10px] font-mono text-text-secondary leading-relaxed">
+            Warm-up and cool-down target your most-worked muscles:{' '}
+            <span className="text-primary-500">
+              {workout.stretchPairing.targetedMuscles
+                .map(m => muscleGroupLabels[m as MuscleGroup] || m)
+                .join(', ')}
+            </span>
+          </p>
+          {workout.stretchPairing.aiEnhanced && workout.stretchPairing.aiReasoning && (
+            <p className="text-[10px] font-mono text-accent-500 mt-1.5 leading-relaxed">
+              AI: {workout.stretchPairing.aiReasoning}
+            </p>
+          )}
+          {workout.stretchPairing.aiEnhanced && (
+            <span className="inline-block mt-1.5 text-[9px] font-mono text-primary-500 border border-primary-500/30 px-1.5 py-0.5 bg-primary-900/20">
+              AI-ENHANCED
+            </span>
+          )}
+        </motion.div>
+      )}
 
       {/* ── Circuit Detail ── */}
       <motion.div variants={itemVariants} className="card-base p-4">

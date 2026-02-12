@@ -31,6 +31,12 @@ export interface WorkoutPhase {
   blocks: CircuitBlock[]
 }
 
+export interface StretchPairingInfo {
+  targetedMuscles: MuscleGroup[]
+  aiEnhanced: boolean
+  aiReasoning?: string
+}
+
 export interface GeneratedWorkout {
   id: string
   createdAt: string
@@ -41,6 +47,7 @@ export interface GeneratedWorkout {
   totalEstimatedMinutes: number
   totalExerciseCount: number
   muscleGroupCoverage: Partial<Record<MuscleGroup, number>>
+  stretchPairing?: StretchPairingInfo
 }
 
 export interface WorkoutHistoryEntry {
