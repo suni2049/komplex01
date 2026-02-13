@@ -7,6 +7,12 @@ export interface WorkoutConfig {
   excludeExerciseIds?: string[]
   focus?: ExerciseCategory | 'balanced'
   equipmentOnly?: boolean
+  // AI-enhanced parameters for intelligent workout generation
+  targetMuscles?: MuscleGroup[] // Specific muscles AI wants to prioritize
+  avoidMuscles?: MuscleGroup[] // Muscles to avoid (for recovery)
+  preferredExerciseIds?: string[] // Specific exercises AI recommends
+  volumeModifier?: number // Adjust overall volume (0.7-1.3, default 1.0)
+  emphasizeCardio?: boolean // Whether to include extra cardio
 }
 
 export interface WorkoutExercise {

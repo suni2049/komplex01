@@ -58,7 +58,13 @@ function getEligibleExercises(config: WorkoutConfig, ignoreEquipmentOnly = false
     // When equipmentOnly is set, only include exercises that require at least one piece of equipment
     // ignoreEquipmentOnly is used for warm-up/cool-down which have no equipment-specific exercises
     const equipmentOnlyOk = ignoreEquipmentOnly || !config.equipmentOnly || ex.equipment.length > 0
-    return hasEquipment && difficultyOk && notExcluded && equipmentOnlyOk
+
+    // AI-enhanced filtering: avoid exercises that work muscles we want to rest
+    const notAvoided = !config.avoidMuscles || !config.avoidMuscles.some(muscle =>
+      ex.primaryMuscles.includes(muscle) || ex.secondaryMuscles.includes(muscle)
+    )
+
+    return hasEquipment && difficultyOk && notExcluded && equipmentOnlyOk && notAvoided
   })
 }
 
@@ -80,9 +86,13 @@ function estimateCircuitTime(block: CircuitBlock): number {
   return (roundTime * block.rounds + totalRest)
 }
 
-function makeWorkoutExercise(exercise: Exercise, difficulty: Difficulty): WorkoutExercise {
+function makeWorkoutExercise(
+  exercise: Exercise,
+  difficulty: Difficulty,
+  volumeModifier: number = 1.0
+): WorkoutExercise {
   const scheme = exercise.repScheme
-  const scale = VOLUME_SCALE[difficulty]
+  const scale = VOLUME_SCALE[difficulty] * volumeModifier
   switch (scheme.type) {
     case 'reps':
       return { exercise, reps: Math.round(scheme.defaultReps * scale) }
@@ -115,7 +125,7 @@ function generateWarmUp(eligible: Exercise[]): WorkoutPhase {
   selected.push(...dynamic)
 
   const exercises = selected.slice(0, 5).map(ex => {
-    const we = makeWorkoutExercise(ex, 'beginner')
+    const we = makeWorkoutExercise(ex, 'beginner', 1.0)
     // Reduce warm-up volume
     if (we.reps) we.reps = Math.ceil(we.reps * 0.6)
     if (we.durationSeconds) we.durationSeconds = Math.min(we.durationSeconds, 30)
@@ -147,7 +157,7 @@ function generateCoolDown(eligible: Exercise[], _usedMuscles: MuscleGroup[]): Wo
   const selected = pickRandom(unique, Math.min(4, unique.length))
 
   const exercises = selected.map(ex => {
-    const we = makeWorkoutExercise(ex, 'beginner')
+    const we = makeWorkoutExercise(ex, 'beginner', 1.0)
     if (we.durationSeconds) we.durationSeconds = Math.max(we.durationSeconds, 40)
     return we
   })
@@ -168,7 +178,12 @@ function generateCoolDown(eligible: Exercise[], _usedMuscles: MuscleGroup[]): Wo
   }
 }
 
-function scoreAndPick(pool: Exercise[], categoryWeight: number, configLevel: number): Exercise {
+function scoreAndPick(
+  pool: Exercise[],
+  categoryWeight: number,
+  configLevel: number,
+  aiParams?: { targetMuscles?: MuscleGroup[], preferredIds?: string[] }
+): Exercise {
   const scored = pool.map(ex => {
     let score = 1
     score += categoryWeight * 10
@@ -183,6 +198,27 @@ function scoreAndPick(pool: Exercise[], categoryWeight: number, configLevel: num
       score -= 2
     }
 
+    // AI-enhanced scoring
+    if (aiParams) {
+      // Boost score for preferred exercises
+      if (aiParams.preferredIds?.includes(ex.id)) {
+        score += 25 // Strong preference
+      }
+
+      // Boost score if exercise targets AI-specified muscles
+      if (aiParams.targetMuscles && aiParams.targetMuscles.length > 0) {
+        const targetHits = ex.primaryMuscles.filter(m =>
+          aiParams.targetMuscles!.includes(m)
+        ).length
+        const secondaryHits = ex.secondaryMuscles.filter(m =>
+          aiParams.targetMuscles!.includes(m)
+        ).length
+
+        score += targetHits * 12 // Strong boost for primary muscle matches
+        score += secondaryHits * 6 // Moderate boost for secondary matches
+      }
+    }
+
     return { ex, score }
   })
 
@@ -195,15 +231,31 @@ function generateMainWorkout(
   eligible: Exercise[],
   targetMinutes: number,
   focus: ExerciseCategory | 'balanced',
-  difficulty: Difficulty
+  difficulty: Difficulty,
+  config?: WorkoutConfig
 ): WorkoutPhase {
   const weights = CATEGORY_WEIGHTS[focus]
   const mainPool = eligible.filter(e => !e.isWarmUp || e.category !== 'flexibility')
   const usedIds = new Set<string>()
   const blocks: CircuitBlock[] = []
   const configLevel = DIFFICULTY_LEVEL[difficulty]
+  const volumeModifier = config?.volumeModifier ?? 1.0
 
-  const categoryOrder: ExerciseCategory[] = ['push', 'legs', 'pull', 'core', 'cardio']
+  // Prepare AI parameters for exercise scoring
+  const aiParams = config?.targetMuscles || config?.preferredExerciseIds
+    ? {
+        targetMuscles: config.targetMuscles,
+        preferredIds: config.preferredExerciseIds,
+      }
+    : undefined
+
+  // Adjust category order if emphasizing cardio
+  let categoryOrder: ExerciseCategory[] = ['push', 'legs', 'pull', 'core', 'cardio']
+  if (config?.emphasizeCardio) {
+    // Put cardio first in rotation and increase frequency
+    categoryOrder = ['cardio', 'push', 'legs', 'cardio', 'pull', 'core']
+  }
+
   let totalSeconds = 0
   const targetSeconds = targetMinutes * 60
   let circuitNum = 0
@@ -223,9 +275,9 @@ function generateMainWorkout(
 
       if (catPool.length === 0) continue
 
-      const pick = scoreAndPick(catPool, weights[cat], configLevel)
+      const pick = scoreAndPick(catPool, weights[cat], configLevel, aiParams)
       usedIds.add(pick.id)
-      circuitExercises.push(makeWorkoutExercise(pick, difficulty))
+      circuitExercises.push(makeWorkoutExercise(pick, difficulty, volumeModifier))
     }
 
     // If we don't have enough exercises from category rotation,
@@ -233,9 +285,9 @@ function generateMainWorkout(
     if (circuitExercises.length < maxExercises) {
       const remainingPool = mainPool.filter(e => !usedIds.has(e.id))
       while (circuitExercises.length < maxExercises && remainingPool.length > 0) {
-        const pick = scoreAndPick(remainingPool, 0.2, configLevel)
+        const pick = scoreAndPick(remainingPool, 0.2, configLevel, aiParams)
         usedIds.add(pick.id)
-        circuitExercises.push(makeWorkoutExercise(pick, difficulty))
+        circuitExercises.push(makeWorkoutExercise(pick, difficulty, volumeModifier))
         // Remove from remainingPool
         const idx = remainingPool.findIndex(e => e.id === pick.id)
         if (idx !== -1) remainingPool.splice(idx, 1)
@@ -295,7 +347,7 @@ export function generateWorkout(config: WorkoutConfig): GeneratedWorkout {
   const mainMinutes = config.totalMinutes - warmUpMinutes - coolDownMinutes - 3 // 3 min buffer
 
   // Generate main workout first so we can pair stretches to it
-  const mainWorkout = generateMainWorkout(eligible, mainMinutes, config.focus || 'balanced', config.difficulty)
+  const mainWorkout = generateMainWorkout(eligible, mainMinutes, config.focus || 'balanced', config.difficulty, config)
 
   // Use muscle-aware stretch pairing algorithm
   const pairing = pairStretchesToWorkout(mainWorkout, warmCoolEligible)

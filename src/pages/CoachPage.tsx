@@ -113,7 +113,7 @@ export default function CoachPage() {
     type: 'function' as const,
     function: {
       name: 'generate_workout',
-      description: 'Generate a personalized workout based on parameters. Use this when the user asks you to create or generate a workout for them.',
+      description: 'Generate a personalized workout based on parameters. Use this when the user asks you to create or generate a workout for them. You can specify exactly which muscles to target, which to avoid, and adjust the intensity.',
       parameters: {
         type: 'object',
         properties: {
@@ -134,6 +134,30 @@ export default function CoachPage() {
           reasoning: {
             type: 'string',
             description: 'Brief explanation (1-2 sentences) of why this workout plan is optimal for the user right now.',
+          },
+          targetMuscles: {
+            type: 'array',
+            items: {
+              type: 'string',
+              enum: ['chest', 'shoulders', 'triceps', 'biceps', 'forearms', 'upper-back', 'lats', 'lower-back', 'core', 'obliques', 'hip-flexors', 'glutes', 'quads', 'hamstrings', 'calves', 'full-body'],
+            },
+            description: 'Specific muscle groups to prioritize in this workout. Use this to target well-rested muscles or address imbalances. Examples: ["chest", "triceps"] for push focus, ["quads", "glutes"] for leg day.',
+          },
+          avoidMuscles: {
+            type: 'array',
+            items: {
+              type: 'string',
+              enum: ['chest', 'shoulders', 'triceps', 'biceps', 'forearms', 'upper-back', 'lats', 'lower-back', 'core', 'obliques', 'hip-flexors', 'glutes', 'quads', 'hamstrings', 'calves'],
+            },
+            description: 'Muscle groups to avoid (for recovery). Use this for muscles worked in the last 24-48 hours to prevent overtraining.',
+          },
+          volumeModifier: {
+            type: 'number',
+            description: 'Adjust overall workout volume/intensity (0.7-1.3, default 1.0). Use 0.8-0.9 for recovery days, 1.1-1.2 for hard training days. This scales reps and duration.',
+          },
+          emphasizeCardio: {
+            type: 'boolean',
+            description: 'Set to true to include extra cardio exercises in the workout. Use when user wants fat loss, conditioning, or mentions cardio.',
           },
         },
         required: ['focus', 'durationMinutes', 'difficulty', 'reasoning'],
@@ -271,18 +295,44 @@ USER PREFERENCES:
 - Typical workout duration: ${settings.defaultDurationMinutes || 45} minutes
 
 When users ask you to create, generate, or suggest a workout:
-1. Use the generate_workout function to actually create the workout
-2. Choose focus based on their recent training (avoid recently worked muscles)
-3. Consider recovery needs (muscles worked in last 24h need rest)
-4. Balance training over time
-5. Provide clear reasoning for your choices
+1. ALWAYS use the generate_workout function to actually create the workout
+2. Analyze their training history to identify:
+   - Recently worked muscles (worked in last 24-48h) → Add to avoidMuscles
+   - Well-rested muscles (not worked in 2+ days) → Add to targetMuscles
+   - Muscle imbalances (some muscles trained more than others)
+3. Set the focus parameter based on their request and history
+4. Use the advanced parameters intelligently:
+   - targetMuscles: List specific muscles to prioritize (e.g., ["chest", "triceps", "shoulders"] for push day)
+   - avoidMuscles: List muscles that need recovery (recently worked in last 24-48h)
+   - volumeModifier: Adjust intensity (0.8 for recovery/light day, 1.0 normal, 1.2 for hard training)
+   - emphasizeCardio: Set to true if user mentions cardio, fat loss, or conditioning
+5. Provide clear reasoning that explains your muscle targeting choices
+
+EXAMPLES OF SMART WORKOUT GENERATION:
+
+Example 1 - User worked chest yesterday:
+- avoidMuscles: ["chest", "triceps", "shoulders"]
+- targetMuscles: ["quads", "hamstrings", "glutes"]
+- focus: "legs"
+- reasoning: "Your chest, triceps, and shoulders need recovery from yesterday. Let's focus on legs which are well-rested."
+
+Example 2 - User wants a recovery day:
+- volumeModifier: 0.8
+- emphasizeCardio: false
+- reasoning: "Light intensity workout to promote active recovery while maintaining movement patterns."
+
+Example 3 - User wants to work on weak areas:
+- If analysis shows legs undertrained:
+  - targetMuscles: ["quads", "hamstrings", "glutes", "calves"]
+  - focus: "legs"
+  - reasoning: "Your leg training has been light lately. This workout prioritizes lower body to balance your program."
 
 For other questions (exercise advice, form tips, recovery advice):
 - Respond conversationally and helpfully
 - Be encouraging and practical
 - Use bullet points for clarity
 
-Remember: When generating workouts, ALWAYS use the generate_workout tool - don't just describe a workout in text!`
+CRITICAL: When generating workouts, ALWAYS use the generate_workout tool with appropriate parameters - don't just describe a workout in text!`
 
       const { message, error: apiError, toolCalls } = await groqService.sendMessageWithTools(
         userMessage,
@@ -311,6 +361,11 @@ Remember: When generating workouts, ALWAYS use the generate_workout tool - don't
               availableEquipment: settings.equipment || ['none'],
               difficulty: args.difficulty || settings.defaultDifficulty || 'intermediate',
               focus: args.focus || 'balanced',
+              // AI-enhanced parameters
+              targetMuscles: args.targetMuscles,
+              avoidMuscles: args.avoidMuscles,
+              volumeModifier: args.volumeModifier,
+              emphasizeCardio: args.emphasizeCardio,
             }
 
             // Generate and save the workout with AI's reasoning
