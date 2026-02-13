@@ -8,6 +8,7 @@ import { analyzeWorkoutHistory, buildCoachContext } from '../lib/workoutHistoryA
 import { generateWorkout } from '../lib/workoutGenerator'
 import ChatMessage from '../components/aicoach/ChatMessage'
 import ChatInput from '../components/aicoach/ChatInput'
+import WorkoutPreview from '../components/workout/WorkoutPreview'
 import { IconTarget, IconLightning, IconChart, IconRecovery } from '../components/icons/Icons'
 import { nanoid } from 'nanoid'
 import type { ChatMessage as ChatMessageType, AICoachError } from '../types/aiCoach'
@@ -81,6 +82,9 @@ export default function CoachPage() {
   const [isThinking, setIsThinking] = useState(false)
   const [error, setError] = useState<AICoachError | null>(null)
   const [lastUserMessage, setLastUserMessage] = useState<string>('')
+  const [generatedWorkout, setGeneratedWorkout] = useState<GeneratedWorkout | null>(null)
+  const [workoutConfig, setWorkoutConfig] = useState<WorkoutConfig | null>(null)
+  const [workoutReasoning, setWorkoutReasoning] = useState<string | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const messagesContainerRef = useRef<HTMLDivElement>(null)
 
@@ -148,6 +152,11 @@ export default function CoachPage() {
         createdAt: new Date().toISOString(),
       }
 
+      // Store the workout, config, and reasoning for display and potential regeneration
+      setGeneratedWorkout(workoutWithMetadata)
+      setWorkoutConfig(config)
+      setWorkoutReasoning(reasoning || null)
+
       // Add system message to indicate workout generation
       const focusLabel = config.focus && config.focus !== 'balanced'
         ? config.focus.charAt(0).toUpperCase() + config.focus.slice(1) + '-Focused'
@@ -186,13 +195,13 @@ ${reasoning}
 
 **TOTAL:** ${workout.totalExerciseCount} exercises across all phases
 
-**STATUS:** Workout saved and ready to begin!`,
+**STATUS:** Review the workout details below and commence when ready!`,
         timestamp: new Date().toISOString(),
       }
 
       setMessages(prev => [...prev, systemMsg])
 
-      // Save to history (as a template) and navigate
+      // Save to history (as a template)
       await saveWorkout({
         id: workoutWithMetadata.id,
         createdAt: workoutWithMetadata.createdAt,
@@ -206,28 +215,6 @@ ${reasoning}
         name: `AI Coach: ${config.focus && config.focus !== 'balanced' ? config.focus.charAt(0).toUpperCase() + config.focus.slice(1) : 'Balanced'} Workout`,
       })
 
-      // Add launching message with countdown
-      const launchMsg: ChatMessageType = {
-        id: nanoid(),
-        role: 'assistant',
-        content: `**→ LAUNCHING WORKOUT SESSION**
-
-Starting in 2 seconds...
-
-**Get ready to train!**`,
-        timestamp: new Date().toISOString(),
-      }
-
-      setTimeout(() => {
-        setMessages(prev => [...prev, launchMsg])
-      }, 500)
-
-      // Store workout in sessionStorage and navigate
-      setTimeout(() => {
-        sessionStorage.setItem('activeWorkout', JSON.stringify(workoutWithMetadata))
-        navigate('/workout')
-      }, 2500)
-
     } catch (err) {
       console.error('Failed to generate workout:', err)
       setError({
@@ -236,7 +223,7 @@ Starting in 2 seconds...
         retryable: true,
       })
     }
-  }, [saveWorkout, navigate])
+  }, [saveWorkout])
 
   const sendMessage = useCallback(async (userMessage: string) => {
     if (!groqService.isInitialized()) {
@@ -251,6 +238,10 @@ Starting in 2 seconds...
     setLastUserMessage(userMessage)
     setError(null)
     setIsThinking(true)
+    // Clear any existing workout preview when sending a new message
+    setGeneratedWorkout(null)
+    setWorkoutConfig(null)
+    setWorkoutReasoning(null)
 
     // Add user message
     const userMsg: ChatMessageType = {
@@ -373,6 +364,20 @@ Remember: When generating workouts, ALWAYS use the generate_workout tool - don't
     }
   }, [lastUserMessage, sendMessage])
 
+  const handleStartWorkout = useCallback(() => {
+    if (generatedWorkout) {
+      sessionStorage.setItem('activeWorkout', JSON.stringify(generatedWorkout))
+      navigate('/workout')
+    }
+  }, [generatedWorkout, navigate])
+
+  const handleRegenerateWorkout = useCallback(() => {
+    if (workoutConfig) {
+      // Regenerate with the same config
+      generateAndSaveWorkout(workoutConfig, workoutReasoning || undefined)
+    }
+  }, [workoutConfig, workoutReasoning, generateAndSaveWorkout])
+
   const displayMessages = messages.filter((msg) => msg.role !== 'system')
   const showQuickActions = displayMessages.length === 0 && !isThinking && !error
 
@@ -472,6 +477,15 @@ Remember: When generating workouts, ALWAYS use the generate_workout tool - don't
               </button>
             )}
           </div>
+        )}
+
+        {/* Workout Preview */}
+        {generatedWorkout && (
+          <WorkoutPreview
+            workout={generatedWorkout}
+            onRegenerate={handleRegenerateWorkout}
+            onStart={handleStartWorkout}
+          />
         )}
 
         <div ref={messagesEndRef} />
