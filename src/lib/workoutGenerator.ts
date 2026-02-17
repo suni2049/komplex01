@@ -335,7 +335,14 @@ function generateMainWorkout(
 }
 
 export function generateWorkout(config: WorkoutConfig): GeneratedWorkout {
-  const eligible = getEligibleExercises(config)
+  let eligible = getEligibleExercises(config)
+
+  // Safety fallback: if avoidMuscles shrinks the pool too much, retry without it
+  if (eligible.length < 8 && config.avoidMuscles && config.avoidMuscles.length > 0) {
+    const relaxedConfig = { ...config, avoidMuscles: undefined }
+    eligible = getEligibleExercises(relaxedConfig)
+  }
+
   // Warm-up/cool-down always use full pool (no equipment-only filter)
   // since there are no equipment-specific warm-up/cool-down exercises
   const warmCoolEligible = config.equipmentOnly
