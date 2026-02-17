@@ -236,7 +236,7 @@ export default function PlanPage() {
       >
         <h3 className="font-mono text-xs text-text-muted mb-3">WEEK PREVIEW:</h3>
         <div className="grid grid-cols-7 gap-2">
-          {['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'].map((day, i) => (
+          {['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'].map((day) => (
             <div key={day} className="text-center">
               <div className="text-[9px] font-mono text-text-muted mb-1">{day}</div>
               <div className="w-2 h-2 mx-auto rounded-full bg-primary-500/50" />

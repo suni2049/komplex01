@@ -295,8 +295,9 @@ export default function ActiveWorkoutPage() {
     const planContextStr = sessionStorage.getItem('activePlanContext')
     const planContext = planContextStr ? JSON.parse(planContextStr) : null
 
-    const historyEntry = await save({
-      id: generateId(),
+    const historyId = generateId()
+    await save({
+      id: historyId,
       createdAt: workout.createdAt,
       completedAt: new Date().toISOString(),
       workout,
@@ -309,7 +310,7 @@ export default function ActiveWorkoutPage() {
 
     // If from plan, mark the plan day as complete
     if (planContext) {
-      await markPlanWorkoutComplete(planContext.planId, planContext.dayId, historyEntry.id)
+      await markPlanWorkoutComplete(planContext.planId, planContext.dayId, historyId)
       sessionStorage.removeItem('activePlanContext')
     }
 
@@ -324,8 +325,9 @@ export default function ActiveWorkoutPage() {
     const planContextStr = sessionStorage.getItem('activePlanContext')
     const planContext = planContextStr ? JSON.parse(planContextStr) : null
 
-    const historyEntry = await save({
-      id: generateId(),
+    const historyId = generateId()
+    await save({
+      id: historyId,
       name: name || undefined,
       createdAt: workout.createdAt,
       completedAt: new Date().toISOString(),
@@ -339,7 +341,7 @@ export default function ActiveWorkoutPage() {
 
     // If from plan, mark the plan day as complete
     if (planContext) {
-      await markPlanWorkoutComplete(planContext.planId, planContext.dayId, historyEntry.id)
+      await markPlanWorkoutComplete(planContext.planId, planContext.dayId, historyId)
       sessionStorage.removeItem('activePlanContext')
     }
 

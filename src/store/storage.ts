@@ -122,7 +122,7 @@ export async function getActiveWeekPlan(): Promise<WorkoutPlan[] | null> {
 }
 
 export async function markPlanWorkoutComplete(
-  planId: string,
+  _planId: string,
   dayId: string,
   historyId: string
 ): Promise<void> {
