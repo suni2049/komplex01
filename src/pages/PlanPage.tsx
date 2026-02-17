@@ -5,6 +5,7 @@ import { useWorkoutPlans } from '../hooks/useWorkoutPlans'
 import { useSettings } from '../hooks/useSettings'
 import { useSound } from '../hooks/useSound'
 import { generateWeekPlan } from '../lib/weekPlanGenerator'
+import { generateWeekOverview } from '../lib/weekOverviewGenerator'
 import WeekCalendar from '../components/plan/WeekCalendar'
 import { cn } from '../utils/cn'
 import type { WeekRotationStrategy } from '../types/workout'
@@ -62,6 +63,16 @@ export default function PlanPage() {
 
       const enableAI = settings.enableAICoach && !!settings.groqApiKey
       const plans = await generateWeekPlan(config, enableAI)
+
+      // GENERATE AI OVERVIEW IF ENABLED
+      if (enableAI) {
+        const overview = await generateWeekOverview(plans, selectedStrategy)
+        if (overview) {
+          config.aiOverview = overview
+          config.overviewGeneratedAt = new Date().toISOString()
+        }
+      }
+
       await savePlan(config, plans)
       setGenerating(false)
       sound.ready()

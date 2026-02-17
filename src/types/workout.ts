@@ -85,6 +85,9 @@ export interface WorkoutPlan {
   completedWorkoutHistoryId?: string  // Link to WorkoutHistoryEntry if completed
   config: WorkoutConfig               // Config used to generate this workout
   focus: ExerciseCategory | 'balanced' | 'flexibility' // Day focus
+  regeneratedCount?: number           // Track how many times regenerated
+  lastRegeneratedAt?: string          // Timestamp of last regeneration
+  previousWorkoutId?: string          // Link to replaced workout
 }
 
 export interface WeekPlanConfig {
@@ -93,4 +96,6 @@ export interface WeekPlanConfig {
   rotationStrategy: WeekRotationStrategy
   baseConfig: WorkoutConfig           // Base settings (duration, equipment, difficulty)
   createdAt: string
+  aiOverview?: string                 // AI-generated week summary
+  overviewGeneratedAt?: string        // Timestamp for cache
 }

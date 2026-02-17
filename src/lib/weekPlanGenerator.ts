@@ -101,3 +101,51 @@ export async function generateWeekPlan(
 
   return plans
 }
+
+export async function regenerateSingleDay(
+  existingPlan: WorkoutPlan,
+  allPlansInWeek: WorkoutPlan[],
+  rotationStrategy: string,
+  enableAI: boolean = false
+): Promise<WorkoutPlan> {
+  const rotation = ROTATIONS[rotationStrategy]
+  const dayConfig = rotation[existingPlan.dayOfWeek]
+
+  // Calculate muscles to avoid from previous 2 days
+  const previousDays = allPlansInWeek
+    .filter(p => p.dayOfWeek < existingPlan.dayOfWeek && p.dayOfWeek >= existingPlan.dayOfWeek - 2)
+
+  const recentMuscles = new Set<MuscleGroup>()
+  previousDays.forEach(plan => {
+    Object.keys(plan.workout.muscleGroupCoverage).forEach(m =>
+      recentMuscles.add(m as MuscleGroup)
+    )
+  })
+
+  const workoutConfig: WorkoutConfig = {
+    ...existingPlan.config,
+    avoidMuscles: Array.from(recentMuscles),
+    // Exclude previous workout's exercises for variety
+    excludeExerciseIds: existingPlan.workout.mainWorkout.blocks
+      .flatMap(b => b.exercises.map(e => e.exercise.id))
+  }
+
+  let workout: GeneratedWorkout = generateWorkout(workoutConfig)
+
+  if (enableAI) {
+    try {
+      const enhanced = await enhanceWorkoutWithAI(workout)
+      if (enhanced) workout = enhanced
+    } catch (error) {
+      console.warn('AI enhancement failed for regeneration', error)
+    }
+  }
+
+  return {
+    ...existingPlan,
+    workout,
+    regeneratedCount: (existingPlan.regeneratedCount || 0) + 1,
+    lastRegeneratedAt: new Date().toISOString(),
+    previousWorkoutId: existingPlan.workout.id,
+  }
+}

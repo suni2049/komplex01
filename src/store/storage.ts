@@ -149,3 +149,33 @@ export async function getAllWeekPlanConfigs(): Promise<WeekPlanConfig[]> {
   const db = await getDB()
   return db.getAll('weekPlanConfigs')
 }
+
+// Update week plan config (for AI overview)
+export async function updateWeekPlanConfig(
+  planId: string,
+  updates: Partial<WeekPlanConfig>
+): Promise<void> {
+  const db = await getDB()
+  const config = await db.get('weekPlanConfigs', planId)
+  if (config) {
+    await db.put('weekPlanConfigs', { ...config, ...updates })
+  }
+}
+
+// Update single plan day (for regeneration)
+export async function updateWorkoutPlan(
+  dayId: string,
+  updates: Partial<WorkoutPlan>
+): Promise<void> {
+  const db = await getDB()
+  const plan = await db.get('workoutPlans', dayId)
+  if (plan) {
+    await db.put('workoutPlans', { ...plan, ...updates })
+  }
+}
+
+// Get week plan config
+export async function getWeekPlanConfig(planId: string): Promise<WeekPlanConfig | undefined> {
+  const db = await getDB()
+  return db.get('weekPlanConfigs', planId)
+}

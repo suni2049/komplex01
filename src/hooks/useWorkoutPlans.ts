@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
-import { getActiveWeekPlan, saveWorkoutPlan, saveWeekPlanConfig, deleteWeekPlan, markPlanWorkoutComplete } from '../store/storage'
+import { getActiveWeekPlan, saveWorkoutPlan, saveWeekPlanConfig, deleteWeekPlan, markPlanWorkoutComplete, updateWorkoutPlan, getSettings } from '../store/storage'
+import { regenerateSingleDay } from '../lib/weekPlanGenerator'
 import type { WorkoutPlan, WeekPlanConfig } from '../types/workout'
 
 export function useWorkoutPlans() {
@@ -33,5 +34,18 @@ export function useWorkoutPlans() {
     await reload()
   }, [reload])
 
-  return { activePlan, loading, savePlan, markComplete, deletePlan, reload }
+  const regenerateDay = useCallback(async (
+    plan: WorkoutPlan,
+    allPlans: WorkoutPlan[],
+    rotationStrategy: string
+  ) => {
+    const settings = await getSettings()
+    const enableAI = settings.enableAICoach && !!settings.groqApiKey
+
+    const regenerated = await regenerateSingleDay(plan, allPlans, rotationStrategy, enableAI)
+    await updateWorkoutPlan(regenerated.id, regenerated)
+    await reload()
+  }, [reload])
+
+  return { activePlan, loading, savePlan, markComplete, deletePlan, regenerateDay, reload }
 }
