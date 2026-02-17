@@ -61,8 +61,8 @@ export async function generateWeekPlan(
       totalMinutes: dayConfig.focus === 'flexibility' ? 30 : config.baseConfig.totalMinutes,
     }
 
-    // Avoid muscles worked in previous 48 hours
-    if (i >= 2) {
+    // Avoid muscles worked in previous 48 hours (skip for flexibility days — stretching aids recovery)
+    if (i >= 2 && dayConfig.focus !== 'flexibility') {
       const recentMuscles = new Set<MuscleGroup>()
       plans.slice(i - 2, i).forEach(plan => {
         Object.keys(plan.workout.muscleGroupCoverage).forEach(m =>
