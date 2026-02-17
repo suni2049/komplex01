@@ -185,7 +185,7 @@ export default function HomePage() {
 
       {/* Generate Button */}
       <motion.button
-        onClick={handleGenerate}
+        onClick={() => handleGenerate()}
         disabled={generating}
         whileTap={{ scale: 0.97 }}
         className={cn(

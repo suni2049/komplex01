@@ -19,7 +19,7 @@ const difficulties: { value: Difficulty; label: string; code: string }[] = [
 ]
 
 export default function SettingsPage() {
-  const { settings, toggleEquipment, setDifficulty, setDuration, setAccentColor, toggleSound, toggleAICoach, setGroqApiKey, setExerciseGrouping } = useSettings()
+  const { settings, toggleEquipment, setDifficulty, setDuration, setAccentColor, toggleSound, toggleAICoach, setGroqApiKey, setExerciseGrouping, toggleQuickWorkout, setQuickWorkoutMinutes } = useSettings()
   const { clearHistory, history } = useWorkoutHistory()
   const sound = useSound()
   const [showClearConfirm, setShowClearConfirm] = useState(false)
@@ -283,7 +283,7 @@ export default function SettingsPage() {
         <button
           onClick={() => {
             sound.click()
-            updateSettings({ enableQuickWorkout: !settings.enableQuickWorkout })
+            toggleQuickWorkout()
           }}
           className={cn(
             'w-full py-3 text-xs font-heading font-bold tracking-wider transition border uppercase flex items-center justify-center gap-3 mb-3',
@@ -320,7 +320,7 @@ export default function SettingsPage() {
                   key={mins}
                   onClick={() => {
                     sound.select()
-                    updateSettings({ quickWorkoutMinutes: mins })
+                    setQuickWorkoutMinutes(mins)
                   }}
                   className={cn(
                     'flex-1 py-2 text-xs font-heading font-bold transition-all text-center tracking-wider border',
