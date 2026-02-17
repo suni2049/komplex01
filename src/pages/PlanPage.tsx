@@ -7,6 +7,7 @@ import { useSound } from '../hooks/useSound'
 import { generateWeekPlan } from '../lib/weekPlanGenerator'
 import WeekCalendar from '../components/plan/WeekCalendar'
 import { cn } from '../utils/cn'
+import { equipmentList } from '../data/equipment'
 import type { WeekRotationStrategy } from '../types/workout'
 
 const ROTATION_STRATEGIES: { value: WeekRotationStrategy; label: string; description: string }[] = [
@@ -259,6 +260,36 @@ export default function PlanPage() {
           onChange={(e) => setStartDate(e.target.value)}
           className="w-full px-4 py-3 bg-surface-1 border-2 border-surface-2 text-text-primary font-mono text-sm focus:border-primary-500 focus:outline-none"
         />
+      </motion.div>
+
+      {/* Equipment Summary */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.35 }}
+        className="card-base p-4 mb-6"
+      >
+        <h3 className="font-mono text-xs text-text-muted mb-3">
+          <span className="text-primary-500">//</span> EQUIPMENT IN USE
+        </h3>
+        <div className="flex flex-wrap gap-2">
+          {equipmentList
+            .filter(eq => settings.equipment.includes(eq.id) && eq.id !== 'none')
+            .map(eq => (
+              <div
+                key={eq.id}
+                className="flex items-center gap-1.5 px-2 py-1 border border-primary-500/30 bg-primary-500/5 text-text-secondary"
+              >
+                <span className="text-primary-500">{eq.icon}</span>
+                <span className="font-mono text-[10px] font-bold">{eq.name}</span>
+              </div>
+            ))}
+          {settings.equipment.filter(e => e !== 'none').length === 0 && (
+            <span className="font-mono text-[10px] text-text-muted">
+              BODYWEIGHT ONLY — add equipment in Settings
+            </span>
+          )}
+        </div>
       </motion.div>
 
       {/* Preview */}
