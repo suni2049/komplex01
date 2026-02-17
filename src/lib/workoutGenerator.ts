@@ -342,9 +342,21 @@ export function generateWorkout(config: WorkoutConfig): GeneratedWorkout {
     ? getEligibleExercises(config, true)
     : eligible
 
-  const warmUpMinutes = 7
-  const coolDownMinutes = 5
-  const mainMinutes = config.totalMinutes - warmUpMinutes - coolDownMinutes - 3 // 3 min buffer
+  // Dynamic allocation based on total duration
+  function getTimeAllocation(totalMinutes: number) {
+    if (totalMinutes <= 15) {
+      return { warmUp: 3, coolDown: 3, buffer: 1 }
+    } else if (totalMinutes <= 30) {
+      return { warmUp: 5, coolDown: 4, buffer: 2 }
+    } else if (totalMinutes <= 45) {
+      return { warmUp: 6, coolDown: 5, buffer: 2 }
+    } else {
+      return { warmUp: 7, coolDown: 5, buffer: 3 }
+    }
+  }
+
+  const { warmUp: warmUpMinutes, coolDown: coolDownMinutes, buffer } = getTimeAllocation(config.totalMinutes)
+  const mainMinutes = config.totalMinutes - warmUpMinutes - coolDownMinutes - buffer
 
   // Generate main workout first so we can pair stretches to it
   const mainWorkout = generateMainWorkout(eligible, mainMinutes, config.focus || 'balanced', config.difficulty, config)

@@ -66,15 +66,5 @@ export function useSettings() {
     setSettings(updated)
   }, [])
 
-  const toggleQuickWorkout = useCallback(async () => {
-    const updated = await updateSettings({ enableQuickWorkout: !settings.enableQuickWorkout })
-    setSettings(updated)
-  }, [settings.enableQuickWorkout])
-
-  const setQuickWorkoutMinutes = useCallback(async (mins: number) => {
-    const updated = await updateSettings({ quickWorkoutMinutes: mins })
-    setSettings(updated)
-  }, [])
-
-  return { settings, loading, toggleEquipment, setDifficulty, setDuration, setAccentColor, toggleSound, toggleAICoach, setGroqApiKey, setExerciseGrouping, toggleQuickWorkout, setQuickWorkoutMinutes }
+  return { settings, loading, toggleEquipment, setDifficulty, setDuration, setAccentColor, toggleSound, toggleAICoach, setGroqApiKey, setExerciseGrouping }
 }

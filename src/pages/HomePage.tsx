@@ -11,7 +11,7 @@ import WorkoutPreview from '../components/workout/WorkoutPreview'
 import { useSound } from '../hooks/useSound'
 import type { ExerciseCategory, Difficulty } from '../types/exercise'
 import type { GeneratedWorkout } from '../types/workout'
-import { IconStarFilled, IconLightning } from '../components/icons/Icons'
+import { IconStarFilled } from '../components/icons/Icons'
 import GlitchTitle from '../components/ui/GlitchTitle'
 
 const DIRECTIVES = [
@@ -42,24 +42,25 @@ const focusOptions: { value: ExerciseCategory | 'balanced'; label: string }[] = 
 
 export default function HomePage() {
   const navigate = useNavigate()
-  const { settings, setDifficulty } = useSettings()
+  const { settings } = useSettings()
   const { history } = useWorkoutHistory()
   const sound = useSound()
   const [focus, setFocus] = useState<ExerciseCategory | 'balanced'>('balanced')
+  const [difficulty, setDifficultyLocal] = useState<Difficulty | null>(null)
+  const [duration, setDuration] = useState<number>(settings.defaultDurationMinutes)
   const [equipmentOnly, setEquipmentOnly] = useState(false)
   const [generating, setGenerating] = useState(false)
   const [generatedWorkout, setGeneratedWorkout] = useState<GeneratedWorkout | null>(null)
   const [motto] = useState(() => DIRECTIVES[Math.floor(Math.random() * DIRECTIVES.length)])
 
-  const handleGenerate = useCallback((isQuick: boolean = false) => {
+  const handleGenerate = useCallback(() => {
     sound.generate()
     setGenerating(true)
     setTimeout(async () => {
-      const duration = isQuick ? (settings.quickWorkoutMinutes || 15) : settings.defaultDurationMinutes
       const workout = generateWorkout({
         totalMinutes: duration,
         availableEquipment: settings.equipment,
-        difficulty: settings.defaultDifficulty,
+        difficulty: difficulty || settings.defaultDifficulty,
         focus,
         equipmentOnly,
       })
@@ -75,7 +76,7 @@ export default function HomePage() {
         }
       }
     }, 600)
-  }, [settings, focus, equipmentOnly, sound])
+  }, [duration, settings, focus, difficulty, equipmentOnly, sound])
 
   const handleStart = useCallback(() => {
     if (generatedWorkout) {
@@ -168,16 +169,37 @@ export default function HomePage() {
           {difficulties.map(d => (
             <button
               key={d.value}
-              onClick={() => { sound.select(); setDifficulty(d.value) }}
+              onClick={() => { sound.select(); setDifficultyLocal(d.value) }}
               className={cn(
                 'flex-1 py-2.5 text-xs font-heading font-bold tracking-wider transition-all text-center border',
-                settings.defaultDifficulty === d.value
+                (difficulty || settings.defaultDifficulty) === d.value
                   ? 'bg-primary-600 text-white border-primary-500'
                   : 'bg-surface-1 text-text-muted border-surface-3'
               )}
             >
               <span className="block text-[10px] font-mono text-text-ghost">{d.code}</span>
               {d.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Duration */}
+      <div className="mb-6">
+        <p className="section-header">// DURATION</p>
+        <div className="grid grid-cols-5 gap-2">
+          {[15, 30, 45, 60, 90].map((mins) => (
+            <button
+              key={mins}
+              onClick={() => { sound.click(); setDuration(mins) }}
+              className={cn(
+                'px-3 py-2 border-2 transition-all font-mono text-xs font-bold',
+                duration === mins
+                  ? 'border-primary-500 bg-primary-500/10 text-primary-500'
+                  : 'border-surface-2 text-text-muted hover:border-surface-3'
+              )}
+            >
+              {mins}
             </button>
           ))}
         </div>
@@ -209,32 +231,6 @@ export default function HomePage() {
           </span>
         )}
       </motion.button>
-
-      {/* Quick Workout Button */}
-      {settings.enableQuickWorkout && (
-        <motion.button
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          onClick={() => handleGenerate(true)}
-          disabled={generating}
-          className={cn(
-            'w-full mt-3 py-3 font-heading font-bold text-sm tracking-widest uppercase transition-all',
-            'border-2 border-primary-500 text-primary-500',
-            'hover:bg-primary-500/10',
-            'active:bg-primary-500/20',
-            'flex items-center justify-center gap-2',
-            generating && 'opacity-50 cursor-not-allowed'
-          )}
-        >
-          <IconLightning className="w-4 h-4" strokeWidth={2.5} />
-          QUICK {settings.quickWorkoutMinutes || 15}MIN WORKOUT
-        </motion.button>
-      )}
-
-      <p className="text-[10px] text-center text-text-ghost font-mono mt-2 tracking-wider">
-        DURATION: {formatMinutes(settings.defaultDurationMinutes)} // PROTOCOL ACTIVE
-      </p>
 
       {/* Generated Workout Preview */}
       <AnimatePresence>
