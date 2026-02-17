@@ -65,6 +65,8 @@ const DEFAULT_SETTINGS: UserSettings = {
   exerciseGrouping: 'circuit',
   enableAICoach: false,
   groqApiKey: undefined,
+  enableQuickWorkout: false,
+  quickWorkoutMinutes: 15,
 }
 
 export async function getSettings(): Promise<UserSettings> {

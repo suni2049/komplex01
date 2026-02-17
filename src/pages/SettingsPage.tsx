@@ -274,6 +274,67 @@ export default function SettingsPage() {
         </div>
       </section>
 
+      {/* Quick Workout */}
+      <section className="mb-8 border-l-2 border-primary-500/30 pl-3">
+        <p className="section-header mb-3"><span className="text-primary-500">//</span> QUICK WORKOUT</p>
+
+        {/* Enable/Disable Toggle */}
+        <button
+          onClick={() => {
+            sound.click()
+            updateSettings({ enableQuickWorkout: !settings.enableQuickWorkout })
+          }}
+          className={cn(
+            'w-full py-3 text-xs font-heading font-bold tracking-wider transition border uppercase flex items-center justify-center gap-3 mb-3',
+            settings.enableQuickWorkout
+              ? 'bg-primary-600 text-white border-primary-500'
+              : 'bg-surface-1 text-text-muted border-surface-3'
+          )}
+        >
+          ⚡ QUICK WORKOUT
+          <span className="font-mono text-[10px]">[{settings.enableQuickWorkout ? 'ENABLED' : 'DISABLED'}]</span>
+        </button>
+
+        {/* Quick Workout Description */}
+        <div className={cn(
+          'mb-3 p-3 border text-[10px] font-mono leading-relaxed',
+          settings.enableQuickWorkout
+            ? 'bg-primary-900/20 border-primary-500/30 text-text-secondary'
+            : 'bg-surface-1 border-surface-3 text-text-ghost'
+        )}>
+          <p className="text-xs font-heading font-bold tracking-wider mb-2 text-text-primary uppercase">
+            {settings.enableQuickWorkout ? 'QUICK MODE ACTIVE' : 'QUICK MODE AVAILABLE'}
+          </p>
+          <p>Adds a quick workout button to the home page for rapid {settings.quickWorkoutMinutes || 15}-minute sessions. Perfect for time-crunched days.</p>
+        </div>
+
+        {/* Duration Picker */}
+        {settings.enableQuickWorkout && (
+          <div className="bg-surface-1 border border-surface-3 p-3">
+            <label className="block text-[10px] font-mono text-text-muted mb-3 tracking-wider">QUICK WORKOUT DURATION</label>
+            <div className="flex gap-2">
+              {[10, 15, 20, 30].map(mins => (
+                <button
+                  key={mins}
+                  onClick={() => {
+                    sound.select()
+                    updateSettings({ quickWorkoutMinutes: mins })
+                  }}
+                  className={cn(
+                    'flex-1 py-2 text-xs font-heading font-bold transition-all text-center tracking-wider border',
+                    settings.quickWorkoutMinutes === mins
+                      ? 'bg-primary-600 text-white border-primary-500'
+                      : 'bg-surface-0 text-text-muted border-surface-3'
+                  )}
+                >
+                  {mins}M
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+      </section>
+
       {/* Accent Color */}
       <section className="mb-8 border-l-2 border-primary-500/30 pl-3">
         <p className="section-header mb-3"><span className="text-primary-500">//</span> ACCENT COLOR</p>

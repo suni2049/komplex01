@@ -35,14 +35,10 @@ export default function PlanPage() {
 
   const [selectedStrategy, setSelectedStrategy] = useState<WeekRotationStrategy>('push-pull-legs')
   const [startDate, setStartDate] = useState<string>(() => {
-    // Default to next Monday
-    const today = new Date()
-    const dayOfWeek = today.getDay()
-    const daysUntilMonday = dayOfWeek === 0 ? 1 : 8 - dayOfWeek
-    const nextMonday = new Date(today)
-    nextMonday.setDate(today.getDate() + daysUntilMonday)
-    return nextMonday.toISOString().split('T')[0]
+    // Default to today
+    return new Date().toISOString().split('T')[0]
   })
+  const [duration, setDuration] = useState<number>(settings.defaultDurationMinutes)
   const [generating, setGenerating] = useState(false)
   const [showClearConfirm, setShowClearConfirm] = useState(false)
 
@@ -57,19 +53,20 @@ export default function PlanPage() {
         startDate,
         rotationStrategy: selectedStrategy,
         baseConfig: {
-          totalMinutes: settings.defaultDurationMinutes,
+          totalMinutes: duration,
           availableEquipment: settings.equipment,
           difficulty: settings.defaultDifficulty,
         },
         createdAt: new Date().toISOString(),
       }
 
-      const plans = generateWeekPlan(config)
+      const enableAI = settings.enableAICoach && !!settings.groqApiKey
+      const plans = await generateWeekPlan(config, enableAI)
       await savePlan(config, plans)
       setGenerating(false)
       sound.ready()
     }, 800)
-  }, [startDate, selectedStrategy, settings, savePlan, sound])
+  }, [startDate, selectedStrategy, duration, settings, savePlan, sound])
 
   const handleStartWorkout = useCallback((plan: any) => {
     sound.commence()
@@ -211,11 +208,48 @@ export default function PlanPage() {
         </div>
       </motion.div>
 
-      {/* Start Date Picker */}
+      {/* Workout Duration */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
+        className="mb-6"
+      >
+        <label className="section-header mb-3">WORKOUT DURATION: {duration} MIN</label>
+        <div className="flex items-center gap-4">
+          <input
+            type="range"
+            min="15"
+            max="90"
+            step="15"
+            value={duration}
+            onChange={(e) => { sound.click(); setDuration(Number(e.target.value)) }}
+            className="flex-1 h-2 bg-surface-2 rounded-lg appearance-none cursor-pointer accent-primary-500"
+          />
+          <div className="flex gap-2">
+            {[15, 30, 45, 60, 90].map(min => (
+              <button
+                key={min}
+                onClick={() => { sound.click(); setDuration(min) }}
+                className={cn(
+                  'px-2 py-1 text-[10px] font-mono border transition-all',
+                  duration === min
+                    ? 'border-primary-500 bg-primary-500/20 text-primary-500'
+                    : 'border-surface-2 text-text-muted hover:border-surface-3'
+                )}
+              >
+                {min}
+              </button>
+            ))}
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Start Date Picker */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
         className="mb-6"
       >
         <label className="section-header mb-3">START DATE</label>
@@ -231,7 +265,7 @@ export default function PlanPage() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
+        transition={{ delay: 0.4 }}
         className="card-base p-4 mb-6"
       >
         <h3 className="font-mono text-xs text-text-muted mb-3">WEEK PREVIEW:</h3>
@@ -249,7 +283,7 @@ export default function PlanPage() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4 }}
+        transition={{ delay: 0.5 }}
       >
         <button
           onClick={handleGenerate}

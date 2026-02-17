@@ -1,5 +1,5 @@
-import { generateWorkout } from './workoutGenerator'
-import type { WorkoutPlan, WeekPlanConfig, WorkoutConfig } from '../types/workout'
+import { generateWorkout, enhanceWorkoutWithAI } from './workoutGenerator'
+import type { WorkoutPlan, WeekPlanConfig, WorkoutConfig, GeneratedWorkout } from '../types/workout'
 import type { MuscleGroup, ExerciseCategory } from '../types/exercise'
 
 interface DayConfig {
@@ -39,7 +39,10 @@ const ROTATIONS: Record<string, DayConfig[]> = {
   ],
 }
 
-export function generateWeekPlan(config: WeekPlanConfig): WorkoutPlan[] {
+export async function generateWeekPlan(
+  config: WeekPlanConfig,
+  enableAI: boolean = false
+): Promise<WorkoutPlan[]> {
   const rotation = ROTATIONS[config.rotationStrategy]
   const plans: WorkoutPlan[] = []
   const startDate = new Date(config.startDate)
@@ -49,7 +52,7 @@ export function generateWeekPlan(config: WeekPlanConfig): WorkoutPlan[] {
     const scheduledDate = new Date(startDate)
     scheduledDate.setDate(startDate.getDate() + i)
 
-    // For last day (flexibility), generate lightweight stretching workout
+    // For flexibility day, use reduced duration
     const workoutConfig: WorkoutConfig = {
       ...config.baseConfig,
       focus: dayConfig.focus as ExerciseCategory | 'balanced',
@@ -69,7 +72,18 @@ export function generateWeekPlan(config: WeekPlanConfig): WorkoutPlan[] {
       workoutConfig.avoidMuscles = Array.from(recentMuscles)
     }
 
-    const workout = generateWorkout(workoutConfig)
+    let workout: GeneratedWorkout = generateWorkout(workoutConfig)
+
+    // Enhance with AI if enabled (for personalized stretches)
+    if (enableAI) {
+      try {
+        const enhanced = await enhanceWorkoutWithAI(workout)
+        if (enhanced) workout = enhanced
+      } catch (error) {
+        // Silently continue with non-enhanced workout if AI fails
+        console.warn('AI enhancement failed for day', i + 1, error)
+      }
+    }
 
     plans.push({
       id: `${config.planId}-day${i}`,

@@ -13,6 +13,9 @@ interface UserSettings {
   // AI Coach settings
   enableAICoach?: boolean
   groqApiKey?: string
+  // Quick Workout settings
+  enableQuickWorkout?: boolean
+  quickWorkoutMinutes?: number
 }
 
 interface CaliDB extends DBSchema {

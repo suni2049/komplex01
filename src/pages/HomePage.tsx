@@ -51,12 +51,13 @@ export default function HomePage() {
   const [generatedWorkout, setGeneratedWorkout] = useState<GeneratedWorkout | null>(null)
   const [motto] = useState(() => DIRECTIVES[Math.floor(Math.random() * DIRECTIVES.length)])
 
-  const handleGenerate = useCallback(() => {
+  const handleGenerate = useCallback((isQuick: boolean = false) => {
     sound.generate()
     setGenerating(true)
     setTimeout(async () => {
+      const duration = isQuick ? (settings.quickWorkoutMinutes || 15) : settings.defaultDurationMinutes
       const workout = generateWorkout({
-        totalMinutes: settings.defaultDurationMinutes,
+        totalMinutes: duration,
         availableEquipment: settings.equipment,
         difficulty: settings.defaultDifficulty,
         focus,
@@ -208,6 +209,26 @@ export default function HomePage() {
           </span>
         )}
       </motion.button>
+
+      {/* Quick Workout Button */}
+      {settings.enableQuickWorkout && (
+        <motion.button
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          onClick={() => handleGenerate(true)}
+          disabled={generating}
+          className={cn(
+            'w-full mt-3 py-3 font-heading font-bold text-sm tracking-widest uppercase transition-all',
+            'border-2 border-primary-500 text-primary-500',
+            'hover:bg-primary-500/10',
+            'active:bg-primary-500/20',
+            generating && 'opacity-50 cursor-not-allowed'
+          )}
+        >
+          ⚡ QUICK {settings.quickWorkoutMinutes || 15}MIN WORKOUT
+        </motion.button>
+      )}
 
       <p className="text-[10px] text-center text-text-ghost font-mono mt-2 tracking-wider">
         DURATION: {formatMinutes(settings.defaultDurationMinutes)} // PROTOCOL ACTIVE
