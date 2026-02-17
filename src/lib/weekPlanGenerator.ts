@@ -105,7 +105,7 @@ export async function generateWeekPlan(
 export async function regenerateSingleDay(
   existingPlan: WorkoutPlan,
   allPlansInWeek: WorkoutPlan[],
-  rotationStrategy: string,
+  _rotationStrategy: string,
   enableAI: boolean = false
 ): Promise<WorkoutPlan> {
   // Note: existingPlan.config already has the correct focus and target muscles from the rotation
