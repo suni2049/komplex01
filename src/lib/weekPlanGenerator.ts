@@ -109,7 +109,7 @@ export async function regenerateSingleDay(
   enableAI: boolean = false
 ): Promise<WorkoutPlan> {
   const rotation = ROTATIONS[rotationStrategy]
-  const dayConfig = rotation[existingPlan.dayOfWeek]
+  // Note: existingPlan.config already has the correct focus and target muscles from the rotation
 
   // Calculate muscles to avoid from previous 2 days
   const previousDays = allPlansInWeek

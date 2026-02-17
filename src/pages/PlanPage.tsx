@@ -8,7 +8,7 @@ import { generateWeekPlan } from '../lib/weekPlanGenerator'
 import { generateWeekOverview } from '../lib/weekOverviewGenerator'
 import WeekCalendar from '../components/plan/WeekCalendar'
 import { cn } from '../utils/cn'
-import type { WeekRotationStrategy } from '../types/workout'
+import type { WeekRotationStrategy, WeekPlanConfig } from '../types/workout'
 
 const ROTATION_STRATEGIES: { value: WeekRotationStrategy; label: string; description: string }[] = [
   {
@@ -49,7 +49,7 @@ export default function PlanPage() {
 
     setTimeout(async () => {
       const planId = `plan-${Date.now()}`
-      const config = {
+      const config: WeekPlanConfig = {
         planId,
         startDate,
         rotationStrategy: selectedStrategy,
