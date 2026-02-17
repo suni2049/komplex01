@@ -23,7 +23,11 @@ const FOCUS_COLORS: Record<string, { bg: string; text: string; border: string; d
 const DAY_HEADERS = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN']
 
 export default function WeekCalendar({ plans, onStartWorkout, onClearPlan }: WeekCalendarProps) {
-  const [selectedDay, setSelectedDay] = useState<string | null>(null)
+  // Auto-select the first incomplete workout (or the first day if all complete)
+  const [selectedDay, setSelectedDay] = useState<string | null>(() => {
+    const firstIncomplete = plans.find(p => !p.isCompleted)
+    return (firstIncomplete ?? plans[0])?.id ?? null
+  })
 
   const completedCount = plans.filter(p => p.isCompleted).length
   const totalCount = plans.length
