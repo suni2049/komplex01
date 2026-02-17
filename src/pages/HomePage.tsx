@@ -11,7 +11,7 @@ import WorkoutPreview from '../components/workout/WorkoutPreview'
 import { useSound } from '../hooks/useSound'
 import type { ExerciseCategory, Difficulty } from '../types/exercise'
 import type { GeneratedWorkout } from '../types/workout'
-import { IconStarFilled } from '../components/icons/Icons'
+import { IconStarFilled, IconLightning } from '../components/icons/Icons'
 import GlitchTitle from '../components/ui/GlitchTitle'
 
 const DIRECTIVES = [
@@ -223,10 +223,12 @@ export default function HomePage() {
             'border-2 border-primary-500 text-primary-500',
             'hover:bg-primary-500/10',
             'active:bg-primary-500/20',
+            'flex items-center justify-center gap-2',
             generating && 'opacity-50 cursor-not-allowed'
           )}
         >
-          ⚡ QUICK {settings.quickWorkoutMinutes || 15}MIN WORKOUT
+          <IconLightning className="w-4 h-4" strokeWidth={2.5} />
+          QUICK {settings.quickWorkoutMinutes || 15}MIN WORKOUT
         </motion.button>
       )}
 

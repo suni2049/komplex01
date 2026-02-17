@@ -7,6 +7,7 @@ import { accentThemes } from '../data/themes'
 import { cn } from '../utils/cn'
 import { useSound } from '../hooks/useSound'
 import { groqService } from '../lib/groqService'
+import { IconLightning } from '../components/icons/Icons'
 import type { Difficulty } from '../types/exercise'
 
 const durations = [30, 45, 60, 90]
@@ -291,7 +292,8 @@ export default function SettingsPage() {
               : 'bg-surface-1 text-text-muted border-surface-3'
           )}
         >
-          ⚡ QUICK WORKOUT
+          <IconLightning className="w-4 h-4" strokeWidth={2.5} />
+          QUICK WORKOUT
           <span className="font-mono text-[10px]">[{settings.enableQuickWorkout ? 'ENABLED' : 'DISABLED'}]</span>
         </button>
 
