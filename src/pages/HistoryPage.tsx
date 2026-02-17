@@ -79,9 +79,16 @@ export default function HistoryPage() {
                         <p className="text-xs font-heading font-bold text-star-gold uppercase tracking-wider">{entry.name}</p>
                       )}
                       <p className={cn('font-heading font-bold uppercase tracking-wider', entry.name ? 'text-[10px] text-text-muted' : 'text-xs text-text-primary')}>{formatDate(entry.completedAt)}</p>
-                      <p className="text-[10px] text-text-muted font-mono">
-                        {entry.exercisesCompleted} EXERCISES // {formatSeconds(entry.actualDurationSeconds)}
-                      </p>
+                      <div className="flex items-center gap-2">
+                        <p className="text-[10px] text-text-muted font-mono">
+                          {entry.exercisesCompleted} EXERCISES // {formatSeconds(entry.actualDurationSeconds)}
+                        </p>
+                        {entry.fromPlanId && (
+                          <span className="px-1.5 py-0.5 text-[8px] font-mono font-bold bg-primary-500/20 text-primary-500 border border-primary-500">
+                            PLANNED
+                          </span>
+                        )}
+                      </div>
                     </div>
                     <svg
                       className={cn(

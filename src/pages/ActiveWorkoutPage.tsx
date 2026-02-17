@@ -14,6 +14,7 @@ import AICoachButton from '../components/aicoach/AICoachButton'
 import AICoachPanel from '../components/aicoach/AICoachPanel'
 import { groqService } from '../lib/groqService'
 import { buildWorkoutContext, buildSystemPrompt } from '../lib/workoutContextBuilder'
+import { markPlanWorkoutComplete } from '../store/storage'
 import type { GeneratedWorkout, WorkoutExercise, CircuitBlock } from '../types/workout'
 import type { ChatMessage, QuickAction, AICoachError } from '../types/aiCoach'
 
@@ -289,7 +290,12 @@ export default function ActiveWorkoutPage() {
 
   const handleComplete = useCallback(async () => {
     if (!workout) return
-    await save({
+
+    // Check if this workout was from a plan
+    const planContextStr = sessionStorage.getItem('activePlanContext')
+    const planContext = planContextStr ? JSON.parse(planContextStr) : null
+
+    const historyEntry = await save({
       id: generateId(),
       createdAt: workout.createdAt,
       completedAt: new Date().toISOString(),
@@ -298,14 +304,27 @@ export default function ActiveWorkoutPage() {
       exercisesCompleted,
       exercisesSkipped,
       isFavorite: false,
+      fromPlanId: planContext?.planId,
     })
+
+    // If from plan, mark the plan day as complete
+    if (planContext) {
+      await markPlanWorkoutComplete(planContext.planId, planContext.dayId, historyEntry.id)
+      sessionStorage.removeItem('activePlanContext')
+    }
+
     sessionStorage.removeItem('activeWorkout')
     navigate('/history')
   }, [workout, save, stopwatch.seconds, exercisesCompleted, exercisesSkipped, navigate])
 
   const handleFavoriteAndComplete = useCallback(async (name?: string) => {
     if (!workout) return
-    await save({
+
+    // Check if this workout was from a plan
+    const planContextStr = sessionStorage.getItem('activePlanContext')
+    const planContext = planContextStr ? JSON.parse(planContextStr) : null
+
+    const historyEntry = await save({
       id: generateId(),
       name: name || undefined,
       createdAt: workout.createdAt,
@@ -315,7 +334,15 @@ export default function ActiveWorkoutPage() {
       exercisesCompleted,
       exercisesSkipped,
       isFavorite: true,
+      fromPlanId: planContext?.planId,
     })
+
+    // If from plan, mark the plan day as complete
+    if (planContext) {
+      await markPlanWorkoutComplete(planContext.planId, planContext.dayId, historyEntry.id)
+      sessionStorage.removeItem('activePlanContext')
+    }
+
     sessionStorage.removeItem('activeWorkout')
     navigate('/favorites')
   }, [workout, save, stopwatch.seconds, exercisesCompleted, exercisesSkipped, navigate])

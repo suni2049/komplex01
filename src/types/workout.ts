@@ -67,4 +67,30 @@ export interface WorkoutHistoryEntry {
   exercisesSkipped: number
   isFavorite: boolean
   isTemplate?: boolean // True if this is an AI-generated template (not yet completed)
+  fromPlanId?: string // Link to plan if this was a planned workout
+}
+
+export type WeekRotationStrategy = 'push-pull-legs' | 'upper-lower-full' | 'balanced'
+
+export interface WorkoutPlan {
+  id: string                          // Unique ID for this day's plan
+  planId: string                      // Shared ID grouping all 7 days together
+  createdAt: string                   // When the plan was generated
+  scheduledDate: string               // ISO date (YYYY-MM-DD)
+  dayOfWeek: number                   // 0-6 (Sun-Sat)
+  dayLabel: string                    // "MON", "TUE", "WED", etc.
+  workout: GeneratedWorkout           // The full workout for this day
+  isCompleted: boolean                // Has user completed this workout?
+  completedAt?: string                // When it was marked complete
+  completedWorkoutHistoryId?: string  // Link to WorkoutHistoryEntry if completed
+  config: WorkoutConfig               // Config used to generate this workout
+  focus: ExerciseCategory | 'balanced' | 'flexibility' // Day focus
+}
+
+export interface WeekPlanConfig {
+  planId: string                      // ID for this week plan
+  startDate: string                   // ISO date for first day (Monday)
+  rotationStrategy: WeekRotationStrategy
+  baseConfig: WorkoutConfig           // Base settings (duration, equipment, difficulty)
+  createdAt: string
 }
