@@ -58,7 +58,7 @@ export async function clearHistory(): Promise<void> {
 const DEFAULT_SETTINGS: UserSettings = {
   id: 'settings',
   equipment: ['none', 'push-up-bars'] as Equipment[],
-  defaultDifficulty: 'intermediate',
+  defaultDifficulty: 'advanced',
   defaultDurationMinutes: 60,
   accentColor: 'signal-red',
   soundEnabled: true,

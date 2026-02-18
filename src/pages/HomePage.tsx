@@ -9,7 +9,7 @@ import { formatDate } from '../utils/formatTime'
 import { equipmentList } from '../data/equipment'
 import WorkoutPreview from '../components/workout/WorkoutPreview'
 import { useSound } from '../hooks/useSound'
-import type { ExerciseCategory, Difficulty } from '../types/exercise'
+import type { ExerciseCategory } from '../types/exercise'
 import type { GeneratedWorkout } from '../types/workout'
 import { IconStarFilled } from '../components/icons/Icons'
 import GlitchTitle from '../components/ui/GlitchTitle'
@@ -24,12 +24,6 @@ const DIRECTIVES = [
   'PAIN IS TEMPORARY. GLORY IS FOREVER.',
   'FORGE YOURSELF IN IRON.',
   'DEMAND YOUR BEST.',
-]
-
-const difficulties: { value: Difficulty; label: string; code: string }[] = [
-  { value: 'beginner', label: 'RECRUIT', code: 'LVL-1' },
-  { value: 'intermediate', label: 'SOLDIER', code: 'LVL-2' },
-  { value: 'advanced', label: 'OPERATOR', code: 'LVL-3' },
 ]
 
 const focusOptions: { value: ExerciseCategory | 'balanced'; label: string }[] = [
@@ -47,7 +41,6 @@ export default function HomePage() {
   const { history } = useWorkoutHistory()
   const sound = useSound()
   const [focus, setFocus] = useState<ExerciseCategory | 'balanced'>('balanced')
-  const [difficulty, setDifficultyLocal] = useState<Difficulty | null>(null)
   const [duration, setDuration] = useState<number>(settings.defaultDurationMinutes)
   const [equipmentOnly, setEquipmentOnly] = useState(false)
   const [generating, setGenerating] = useState(false)
@@ -61,7 +54,7 @@ export default function HomePage() {
       const workout = generateWorkout({
         totalMinutes: duration,
         availableEquipment: settings.equipment,
-        difficulty: difficulty || settings.defaultDifficulty,
+        difficulty: settings.defaultDifficulty,
         focus,
         equipmentOnly,
       })
@@ -77,7 +70,7 @@ export default function HomePage() {
         }
       }
     }, 600)
-  }, [duration, settings, focus, difficulty, equipmentOnly, sound])
+  }, [duration, settings, focus, equipmentOnly, sound])
 
   const handleStart = useCallback(() => {
     if (generatedWorkout) {
@@ -162,28 +155,6 @@ export default function HomePage() {
           </div>
         </div>
       )}
-
-      {/* Difficulty */}
-      <div className="mb-6">
-        <p className="section-header">// CLEARANCE LEVEL</p>
-        <div className="flex gap-2">
-          {difficulties.map(d => (
-            <button
-              key={d.value}
-              onClick={() => { sound.select(); setDifficultyLocal(d.value) }}
-              className={cn(
-                'flex-1 py-2.5 text-xs font-heading font-bold tracking-wider transition-all text-center border',
-                (difficulty || settings.defaultDifficulty) === d.value
-                  ? 'bg-primary-600 text-white border-primary-500'
-                  : 'bg-surface-1 text-text-muted border-surface-3'
-              )}
-            >
-              <span className="block text-[10px] font-mono text-text-ghost">{d.code}</span>
-              {d.label}
-            </button>
-          ))}
-        </div>
-      </div>
 
       {/* Duration */}
       <div className="mb-6">

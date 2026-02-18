@@ -53,7 +53,6 @@ function getEligibleExercises(config: WorkoutConfig, ignoreEquipmentOnly = false
   return exercises.filter(ex => {
     const hasEquipment = ex.equipment.length === 0 ||
       ex.equipment.every(eq => config.availableEquipment.includes(eq))
-    const difficultyOk = DIFFICULTY_LEVEL[ex.difficulty] <= DIFFICULTY_LEVEL[config.difficulty]
     const notExcluded = !config.excludeExerciseIds?.includes(ex.id)
     // When equipmentOnly is set, only include exercises that require at least one piece of equipment
     // ignoreEquipmentOnly is used for warm-up/cool-down which have no equipment-specific exercises
@@ -67,7 +66,7 @@ function getEligibleExercises(config: WorkoutConfig, ignoreEquipmentOnly = false
       ex.primaryMuscles.includes(muscle)
     )
 
-    return hasEquipment && difficultyOk && notExcluded && equipmentOnlyOk && notAvoided
+    return hasEquipment && notExcluded && equipmentOnlyOk && notAvoided
   })
 }
 
