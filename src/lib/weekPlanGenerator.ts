@@ -9,10 +9,8 @@ export interface DayConfig {
   emphasizeCardio?: boolean
 }
 
-// Only avoid muscles with significant coverage from prior days.
-// Core/obliques are excluded — they're secondary in almost every exercise
-// and blocking them would cripple the eligible exercise pool.
-const AVOID_COVERAGE_THRESHOLD = 2.0
+// Core and obliques appear as secondary muscles in almost every exercise.
+// Never add them to avoidMuscles or the eligible exercise pool collapses.
 const NEVER_AVOID = new Set<MuscleGroup>(['core', 'obliques'])
 
 // Rotation strategies define focus and target muscles for each day
@@ -68,15 +66,21 @@ export async function generateWeekPlan(
       totalMinutes: dayConfig.focus === 'flexibility' ? 30 : config.baseConfig.totalMinutes,
     }
 
-    // Avoid muscles worked heavily in previous 48 hours (skip for flexibility days — stretching aids recovery).
-    // Only avoid muscles above a coverage threshold; never avoid core/obliques since they
-    // appear as a secondary in almost every exercise and would cripple the eligible pool.
+    // Build avoidMuscles from the declared targetMuscles of the previous two days.
+    // Using targetMuscles (from ROTATIONS) is far more reliable than computing coverage:
+    // - Coverage from muscleGroupCoverage is contaminated by warm-up exercises that
+    //   are drawn from a universal pool (squats, high-knees, lateral lunges appear on
+    //   PUSH days and falsely add quads/glutes to avoidMuscles, crippling leg days)
+    // - targetMuscles precisely reflects the training intent of each day
+    // - For balanced days where targetMuscles=[], no muscles are added → no restriction
+    // Skip flexibility days — stretching aids recovery and should be unrestricted.
     if (i >= 2 && dayConfig.focus !== 'flexibility') {
       const recentMuscles = new Set<MuscleGroup>()
       plans.slice(i - 2, i).forEach(plan => {
-        Object.entries(plan.workout.muscleGroupCoverage).forEach(([muscle, coverage]) => {
-          if ((coverage ?? 0) >= AVOID_COVERAGE_THRESHOLD && !NEVER_AVOID.has(muscle as MuscleGroup)) {
-            recentMuscles.add(muscle as MuscleGroup)
+        const targets = plan.config.targetMuscles ?? []
+        targets.forEach(m => {
+          if (!NEVER_AVOID.has(m as MuscleGroup)) {
+            recentMuscles.add(m as MuscleGroup)
           }
         })
       })

@@ -9,7 +9,6 @@ import WeekCalendar from '../components/plan/WeekCalendar'
 import { cn } from '../utils/cn'
 import { equipmentList } from '../data/equipment'
 import type { WeekRotationStrategy } from '../types/workout'
-import type { Difficulty } from '../types/exercise'
 
 const ROTATION_STRATEGIES: { value: WeekRotationStrategy; label: string; description: string }[] = [
   {
@@ -27,12 +26,6 @@ const ROTATION_STRATEGIES: { value: WeekRotationStrategy; label: string; descrip
     label: 'BALANCED',
     description: 'Full body workouts every day with varied intensity. Great for general fitness.',
   },
-]
-
-const DIFFICULTIES: { value: Difficulty; label: string; code: string }[] = [
-  { value: 'beginner',     label: 'RECRUIT',  code: 'LVL-1' },
-  { value: 'intermediate', label: 'SOLDIER',  code: 'LVL-2' },
-  { value: 'advanced',     label: 'OPERATOR', code: 'LVL-3' },
 ]
 
 const FOCUS_COLORS: Record<string, string> = {
@@ -58,12 +51,10 @@ export default function PlanPage() {
     return new Date().toISOString().split('T')[0]
   })
   const [duration, setDuration] = useState<number>(settings.defaultDurationMinutes)
-  const [difficulty, setDifficulty] = useState<Difficulty | null>(null)
   const [equipmentOnly, setEquipmentOnly] = useState(false)
   const [generating, setGenerating] = useState(false)
   const [showClearConfirm, setShowClearConfirm] = useState(false)
 
-  const effectiveDifficulty = difficulty ?? settings.defaultDifficulty
   const hasEquipment = settings.equipment.filter(e => e !== 'none').length > 0
 
   const handleGenerate = useCallback(() => {
@@ -79,7 +70,7 @@ export default function PlanPage() {
         baseConfig: {
           totalMinutes: duration,
           availableEquipment: settings.equipment,
-          difficulty: difficulty ?? settings.defaultDifficulty,
+          difficulty: 'advanced',
           equipmentOnly: equipmentOnly && hasEquipment,
         },
         createdAt: new Date().toISOString(),
@@ -91,7 +82,7 @@ export default function PlanPage() {
       setGenerating(false)
       sound.ready()
     }, 800)
-  }, [startDate, selectedStrategy, duration, difficulty, equipmentOnly, settings, hasEquipment, savePlan, sound])
+  }, [startDate, selectedStrategy, duration, equipmentOnly, settings, hasEquipment, savePlan, sound])
 
   const handleStartWorkout = useCallback((plan: any) => {
     sound.commence()
@@ -234,38 +225,6 @@ export default function PlanPage() {
             </button>
           ))}
         </div>
-      </motion.div>
-
-      {/* Clearance Level (Difficulty) */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.15 }}
-        className="mb-6"
-      >
-        <label className="section-header mb-3">CLEARANCE LEVEL</label>
-        <div className="flex gap-2">
-          {DIFFICULTIES.map(d => (
-            <button
-              key={d.value}
-              onClick={() => { sound.select(); setDifficulty(d.value) }}
-              className={cn(
-                'flex-1 py-2.5 text-xs font-heading font-bold tracking-wider transition-all text-center border',
-                effectiveDifficulty === d.value
-                  ? 'bg-primary-600 text-white border-primary-500'
-                  : 'bg-surface-1 text-text-muted border-surface-3 hover:border-primary-500/50'
-              )}
-            >
-              <span className="block text-[10px] font-mono text-text-ghost">{d.code}</span>
-              {d.label}
-            </button>
-          ))}
-        </div>
-        {difficulty === null && (
-          <p className="text-[10px] font-mono text-text-muted mt-1.5">
-            Using default from Settings ({settings.defaultDifficulty})
-          </p>
-        )}
       </motion.div>
 
       {/* Workout Duration */}

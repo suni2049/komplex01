@@ -59,9 +59,12 @@ function getEligibleExercises(config: WorkoutConfig, ignoreEquipmentOnly = false
     // ignoreEquipmentOnly is used for warm-up/cool-down which have no equipment-specific exercises
     const equipmentOnlyOk = ignoreEquipmentOnly || !config.equipmentOnly || ex.equipment.length > 0
 
-    // AI-enhanced filtering: avoid exercises that work muscles we want to rest
+    // Avoid exercises where an avoided muscle is a PRIMARY target.
+    // Secondary muscles are NOT checked — an exercise like a squat shouldn't be
+    // blocked on a legs day just because 'core' appears as a secondary in a prior
+    // day's avoidMuscles list. Only the explicit primary target matters for recovery.
     const notAvoided = !config.avoidMuscles || !config.avoidMuscles.some(muscle =>
-      ex.primaryMuscles.includes(muscle) || ex.secondaryMuscles.includes(muscle)
+      ex.primaryMuscles.includes(muscle)
     )
 
     return hasEquipment && difficultyOk && notExcluded && equipmentOnlyOk && notAvoided
