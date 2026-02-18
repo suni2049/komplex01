@@ -2,40 +2,47 @@ import { generateWorkout, enhanceWorkoutWithAI } from './workoutGenerator'
 import type { WorkoutPlan, WeekPlanConfig, WorkoutConfig, GeneratedWorkout } from '../types/workout'
 import type { MuscleGroup, ExerciseCategory } from '../types/exercise'
 
-interface DayConfig {
+export interface DayConfig {
   focus: ExerciseCategory | 'balanced' | 'flexibility'
+  label: string
   targetMuscles: MuscleGroup[]
   emphasizeCardio?: boolean
 }
 
+// Only avoid muscles with significant coverage from prior days.
+// Core/obliques are excluded — they're secondary in almost every exercise
+// and blocking them would cripple the eligible exercise pool.
+const AVOID_COVERAGE_THRESHOLD = 2.0
+const NEVER_AVOID = new Set<MuscleGroup>(['core', 'obliques'])
+
 // Rotation strategies define focus and target muscles for each day
-const ROTATIONS: Record<string, DayConfig[]> = {
+export const ROTATIONS: Record<string, DayConfig[]> = {
   'push-pull-legs': [
-    { focus: 'push', targetMuscles: ['chest', 'shoulders', 'triceps'] },
-    { focus: 'pull', targetMuscles: ['upper-back', 'lats', 'biceps'] },
-    { focus: 'legs', targetMuscles: ['quads', 'hamstrings', 'glutes', 'calves'] },
-    { focus: 'push', targetMuscles: ['shoulders', 'triceps', 'chest'] },
-    { focus: 'pull', targetMuscles: ['lats', 'upper-back', 'biceps'] },
-    { focus: 'legs', targetMuscles: ['glutes', 'quads', 'hamstrings'] },
-    { focus: 'flexibility', targetMuscles: [] }, // Stretch-only day
+    { focus: 'push',        label: 'PUSH',  targetMuscles: ['chest', 'shoulders', 'triceps'] },
+    { focus: 'pull',        label: 'PULL',  targetMuscles: ['upper-back', 'lats', 'biceps'] },
+    { focus: 'legs',        label: 'LEGS',  targetMuscles: ['quads', 'hamstrings', 'glutes', 'calves'] },
+    { focus: 'push',        label: 'PUSH',  targetMuscles: ['shoulders', 'triceps', 'chest'] },
+    { focus: 'pull',        label: 'PULL',  targetMuscles: ['lats', 'upper-back', 'biceps'] },
+    { focus: 'legs',        label: 'LEGS',  targetMuscles: ['glutes', 'quads', 'hamstrings'] },
+    { focus: 'flexibility', label: 'FLEX',  targetMuscles: [] },
   ],
   'upper-lower-full': [
-    { focus: 'push', targetMuscles: ['chest', 'shoulders', 'triceps', 'upper-back'] }, // Upper
-    { focus: 'legs', targetMuscles: ['quads', 'hamstrings', 'glutes', 'calves'] }, // Lower
-    { focus: 'core', targetMuscles: ['core', 'obliques'], emphasizeCardio: true }, // Active recovery
-    { focus: 'push', targetMuscles: ['shoulders', 'chest', 'upper-back', 'biceps'] }, // Upper
-    { focus: 'legs', targetMuscles: ['glutes', 'hamstrings', 'quads'] }, // Lower
-    { focus: 'balanced', targetMuscles: [] }, // Full body
-    { focus: 'flexibility', targetMuscles: [] },
+    { focus: 'push',        label: 'UPPER', targetMuscles: ['chest', 'shoulders', 'triceps', 'upper-back'] },
+    { focus: 'legs',        label: 'LOWER', targetMuscles: ['quads', 'hamstrings', 'glutes', 'calves'] },
+    { focus: 'core',        label: 'ACTIV', targetMuscles: ['core', 'obliques'], emphasizeCardio: true },
+    { focus: 'push',        label: 'UPPER', targetMuscles: ['shoulders', 'chest', 'upper-back', 'biceps'] },
+    { focus: 'legs',        label: 'LOWER', targetMuscles: ['glutes', 'hamstrings', 'quads'] },
+    { focus: 'balanced',    label: 'FULL',  targetMuscles: [] },
+    { focus: 'flexibility', label: 'FLEX',  targetMuscles: [] },
   ],
   'balanced': [
-    { focus: 'balanced', targetMuscles: [] },
-    { focus: 'balanced', targetMuscles: [] },
-    { focus: 'core', targetMuscles: ['core', 'obliques'], emphasizeCardio: true },
-    { focus: 'balanced', targetMuscles: [] },
-    { focus: 'balanced', targetMuscles: [] },
-    { focus: 'balanced', targetMuscles: [] },
-    { focus: 'flexibility', targetMuscles: [] },
+    { focus: 'balanced',    label: 'FULL',  targetMuscles: [] },
+    { focus: 'balanced',    label: 'FULL',  targetMuscles: [] },
+    { focus: 'core',        label: 'CORE',  targetMuscles: ['core', 'obliques'], emphasizeCardio: true },
+    { focus: 'balanced',    label: 'FULL',  targetMuscles: [] },
+    { focus: 'balanced',    label: 'FULL',  targetMuscles: [] },
+    { focus: 'balanced',    label: 'FULL',  targetMuscles: [] },
+    { focus: 'flexibility', label: 'FLEX',  targetMuscles: [] },
   ],
 }
 
@@ -61,15 +68,21 @@ export async function generateWeekPlan(
       totalMinutes: dayConfig.focus === 'flexibility' ? 30 : config.baseConfig.totalMinutes,
     }
 
-    // Avoid muscles worked in previous 48 hours (skip for flexibility days — stretching aids recovery)
+    // Avoid muscles worked heavily in previous 48 hours (skip for flexibility days — stretching aids recovery).
+    // Only avoid muscles above a coverage threshold; never avoid core/obliques since they
+    // appear as a secondary in almost every exercise and would cripple the eligible pool.
     if (i >= 2 && dayConfig.focus !== 'flexibility') {
       const recentMuscles = new Set<MuscleGroup>()
       plans.slice(i - 2, i).forEach(plan => {
-        Object.keys(plan.workout.muscleGroupCoverage).forEach(m =>
-          recentMuscles.add(m as MuscleGroup)
-        )
+        Object.entries(plan.workout.muscleGroupCoverage).forEach(([muscle, coverage]) => {
+          if ((coverage ?? 0) >= AVOID_COVERAGE_THRESHOLD && !NEVER_AVOID.has(muscle as MuscleGroup)) {
+            recentMuscles.add(muscle as MuscleGroup)
+          }
+        })
       })
-      workoutConfig.avoidMuscles = Array.from(recentMuscles)
+      if (recentMuscles.size > 0) {
+        workoutConfig.avoidMuscles = Array.from(recentMuscles)
+      }
     }
 
     let workout: GeneratedWorkout = generateWorkout(workoutConfig)

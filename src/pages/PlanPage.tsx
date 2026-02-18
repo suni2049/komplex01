@@ -4,11 +4,12 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useWorkoutPlans } from '../hooks/useWorkoutPlans'
 import { useSettings } from '../hooks/useSettings'
 import { useSound } from '../hooks/useSound'
-import { generateWeekPlan } from '../lib/weekPlanGenerator'
+import { generateWeekPlan, ROTATIONS } from '../lib/weekPlanGenerator'
 import WeekCalendar from '../components/plan/WeekCalendar'
 import { cn } from '../utils/cn'
 import { equipmentList } from '../data/equipment'
 import type { WeekRotationStrategy } from '../types/workout'
+import type { Difficulty } from '../types/exercise'
 
 const ROTATION_STRATEGIES: { value: WeekRotationStrategy; label: string; description: string }[] = [
   {
@@ -28,6 +29,24 @@ const ROTATION_STRATEGIES: { value: WeekRotationStrategy; label: string; descrip
   },
 ]
 
+const DIFFICULTIES: { value: Difficulty; label: string; code: string }[] = [
+  { value: 'beginner',     label: 'RECRUIT',  code: 'LVL-1' },
+  { value: 'intermediate', label: 'SOLDIER',  code: 'LVL-2' },
+  { value: 'advanced',     label: 'OPERATOR', code: 'LVL-3' },
+]
+
+const FOCUS_COLORS: Record<string, string> = {
+  push:        'text-red-400 border-red-500/40 bg-red-500/10',
+  pull:        'text-blue-400 border-blue-500/40 bg-blue-500/10',
+  legs:        'text-green-400 border-green-500/40 bg-green-500/10',
+  core:        'text-yellow-400 border-yellow-500/40 bg-yellow-500/10',
+  cardio:      'text-purple-400 border-purple-500/40 bg-purple-500/10',
+  balanced:    'text-primary-400 border-primary-500/40 bg-primary-500/10',
+  flexibility: 'text-cyan-400 border-cyan-500/40 bg-cyan-500/10',
+}
+
+const DAY_ABBREVS = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN']
+
 export default function PlanPage() {
   const navigate = useNavigate()
   const sound = useSound()
@@ -36,12 +55,16 @@ export default function PlanPage() {
 
   const [selectedStrategy, setSelectedStrategy] = useState<WeekRotationStrategy>('push-pull-legs')
   const [startDate, setStartDate] = useState<string>(() => {
-    // Default to today
     return new Date().toISOString().split('T')[0]
   })
   const [duration, setDuration] = useState<number>(settings.defaultDurationMinutes)
+  const [difficulty, setDifficulty] = useState<Difficulty | null>(null)
+  const [equipmentOnly, setEquipmentOnly] = useState(false)
   const [generating, setGenerating] = useState(false)
   const [showClearConfirm, setShowClearConfirm] = useState(false)
+
+  const effectiveDifficulty = difficulty ?? settings.defaultDifficulty
+  const hasEquipment = settings.equipment.filter(e => e !== 'none').length > 0
 
   const handleGenerate = useCallback(() => {
     sound.generate()
@@ -56,7 +79,8 @@ export default function PlanPage() {
         baseConfig: {
           totalMinutes: duration,
           availableEquipment: settings.equipment,
-          difficulty: settings.defaultDifficulty,
+          difficulty: difficulty ?? settings.defaultDifficulty,
+          equipmentOnly: equipmentOnly && hasEquipment,
         },
         createdAt: new Date().toISOString(),
       }
@@ -67,7 +91,7 @@ export default function PlanPage() {
       setGenerating(false)
       sound.ready()
     }, 800)
-  }, [startDate, selectedStrategy, duration, settings, savePlan, sound])
+  }, [startDate, selectedStrategy, duration, difficulty, equipmentOnly, settings, hasEquipment, savePlan, sound])
 
   const handleStartWorkout = useCallback((plan: any) => {
     sound.commence()
@@ -155,6 +179,9 @@ export default function PlanPage() {
     )
   }
 
+  // Week preview derived from selected strategy
+  const previewDays = ROTATIONS[selectedStrategy]
+
   // Empty State - Generation UI
   return (
     <div className="px-4 pt-10 pb-6">
@@ -209,6 +236,38 @@ export default function PlanPage() {
         </div>
       </motion.div>
 
+      {/* Clearance Level (Difficulty) */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.15 }}
+        className="mb-6"
+      >
+        <label className="section-header mb-3">CLEARANCE LEVEL</label>
+        <div className="flex gap-2">
+          {DIFFICULTIES.map(d => (
+            <button
+              key={d.value}
+              onClick={() => { sound.select(); setDifficulty(d.value) }}
+              className={cn(
+                'flex-1 py-2.5 text-xs font-heading font-bold tracking-wider transition-all text-center border',
+                effectiveDifficulty === d.value
+                  ? 'bg-primary-600 text-white border-primary-500'
+                  : 'bg-surface-1 text-text-muted border-surface-3 hover:border-primary-500/50'
+              )}
+            >
+              <span className="block text-[10px] font-mono text-text-ghost">{d.code}</span>
+              {d.label}
+            </button>
+          ))}
+        </div>
+        {difficulty === null && (
+          <p className="text-[10px] font-mono text-text-muted mt-1.5">
+            Using default from Settings ({settings.defaultDifficulty})
+          </p>
+        )}
+      </motion.div>
+
       {/* Workout Duration */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -217,32 +276,21 @@ export default function PlanPage() {
         className="mb-6"
       >
         <label className="section-header mb-3">WORKOUT DURATION: {duration} MIN</label>
-        <div className="flex items-center gap-4">
-          <input
-            type="range"
-            min="15"
-            max="90"
-            step="15"
-            value={duration}
-            onChange={(e) => { sound.click(); setDuration(Number(e.target.value)) }}
-            className="flex-1 h-2 bg-surface-2 rounded-lg appearance-none cursor-pointer accent-primary-500"
-          />
-          <div className="flex gap-2">
-            {[15, 30, 45, 60, 90].map(min => (
-              <button
-                key={min}
-                onClick={() => { sound.click(); setDuration(min) }}
-                className={cn(
-                  'px-2 py-1 text-[10px] font-mono border transition-all',
-                  duration === min
-                    ? 'border-primary-500 bg-primary-500/20 text-primary-500'
-                    : 'border-surface-2 text-text-muted hover:border-surface-3'
-                )}
-              >
-                {min}
-              </button>
-            ))}
-          </div>
+        <div className="grid grid-cols-5 gap-2">
+          {[15, 30, 45, 60, 90].map(min => (
+            <button
+              key={min}
+              onClick={() => { sound.click(); setDuration(min) }}
+              className={cn(
+                'px-3 py-2 border-2 transition-all font-mono text-xs font-bold',
+                duration === min
+                  ? 'border-primary-500 bg-primary-500/10 text-primary-500'
+                  : 'border-surface-2 text-text-muted hover:border-surface-3'
+              )}
+            >
+              {min}
+            </button>
+          ))}
         </div>
       </motion.div>
 
@@ -250,7 +298,7 @@ export default function PlanPage() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
+        transition={{ delay: 0.25 }}
         className="mb-6"
       >
         <label className="section-header mb-3">START DATE</label>
@@ -262,16 +310,37 @@ export default function PlanPage() {
         />
       </motion.div>
 
-      {/* Equipment Summary */}
+      {/* Equipment */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.35 }}
+        transition={{ delay: 0.3 }}
         className="card-base p-4 mb-6"
       >
-        <h3 className="font-mono text-xs text-text-muted mb-3">
-          <span className="text-primary-500">//</span> EQUIPMENT IN USE
-        </h3>
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="font-mono text-xs text-text-muted">
+            <span className="text-primary-500">//</span> EQUIPMENT IN USE
+          </h3>
+          {hasEquipment && (
+            <button
+              onClick={() => { sound.click(); setEquipmentOnly(v => !v) }}
+              className={cn(
+                'flex items-center gap-1.5 px-2 py-1 text-[10px] font-mono tracking-wider border transition-all',
+                equipmentOnly
+                  ? 'bg-primary-600 text-white border-primary-500'
+                  : 'bg-surface-1 text-text-ghost border-surface-3 hover:border-primary-500/50'
+              )}
+            >
+              <span className={cn(
+                'w-3 h-3 border flex items-center justify-center text-[8px]',
+                equipmentOnly ? 'border-white' : 'border-text-ghost'
+              )}>
+                {equipmentOnly && '✓'}
+              </span>
+              EQUIPMENT ONLY
+            </button>
+          )}
+        </div>
         <div className="flex flex-wrap gap-2">
           {equipmentList
             .filter(eq => settings.equipment.includes(eq.id) && eq.id !== 'none')
@@ -284,37 +353,58 @@ export default function PlanPage() {
                 <span className="font-mono text-[10px] font-bold">{eq.name}</span>
               </div>
             ))}
-          {settings.equipment.filter(e => e !== 'none').length === 0 && (
+          {!hasEquipment && (
             <span className="font-mono text-[10px] text-text-muted">
               BODYWEIGHT ONLY — add equipment in Settings
             </span>
           )}
         </div>
+        {equipmentOnly && hasEquipment && (
+          <p className="font-mono text-[10px] text-primary-400 mt-2">
+            Workouts will prioritize exercises that require your equipment
+          </p>
+        )}
       </motion.div>
 
-      {/* Preview */}
+      {/* Week Preview — shows actual day focuses for the selected strategy */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4 }}
+        transition={{ delay: 0.35 }}
         className="card-base p-4 mb-6"
       >
-        <h3 className="font-mono text-xs text-text-muted mb-3">WEEK PREVIEW:</h3>
-        <div className="grid grid-cols-7 gap-2">
-          {['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'].map((day) => (
-            <div key={day} className="text-center">
-              <div className="text-[9px] font-mono text-text-muted mb-1">{day}</div>
-              <div className="w-2 h-2 mx-auto rounded-full bg-primary-500/50" />
-            </div>
-          ))}
+        <h3 className="font-mono text-xs text-text-muted mb-3">
+          <span className="text-primary-500">//</span> WEEK PREVIEW
+        </h3>
+        <div className="grid grid-cols-7 gap-1">
+          {previewDays.map((day, i) => {
+            const colorClass = FOCUS_COLORS[day.focus] || FOCUS_COLORS.balanced
+            return (
+              <div key={i} className="text-center">
+                <div className="text-[9px] font-mono text-text-muted mb-1.5 tracking-wider">
+                  {DAY_ABBREVS[i]}
+                </div>
+                <div className={cn(
+                  'py-1.5 px-0.5 border text-[8px] font-mono font-bold tracking-wide',
+                  colorClass
+                )}>
+                  {day.label}
+                </div>
+              </div>
+            )
+          })}
         </div>
+        <p className="font-mono text-[9px] text-text-muted mt-3 leading-relaxed">
+          Recovery logic prevents overtraining the same muscle groups on consecutive days.
+          Flexibility day uses a dedicated mobility and stretch circuit.
+        </p>
       </motion.div>
 
       {/* Generate Button */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.5 }}
+        transition={{ delay: 0.4 }}
       >
         <button
           onClick={handleGenerate}
