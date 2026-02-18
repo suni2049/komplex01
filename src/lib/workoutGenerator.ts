@@ -59,9 +59,12 @@ function getEligibleExercises(config: WorkoutConfig, ignoreEquipmentOnly = false
     // ignoreEquipmentOnly is used for warm-up/cool-down which have no equipment-specific exercises
     const equipmentOnlyOk = ignoreEquipmentOnly || !config.equipmentOnly || ex.equipment.length > 0
 
-    // AI-enhanced filtering: avoid exercises that work muscles we want to rest
+    // Avoid exercises where an avoided muscle is a PRIMARY target.
+    // Secondary muscles are NOT checked — an exercise like a squat shouldn't be
+    // blocked on a legs day just because 'core' appears as a secondary in a prior
+    // day's avoidMuscles list. Only the explicit primary target matters for recovery.
     const notAvoided = !config.avoidMuscles || !config.avoidMuscles.some(muscle =>
-      ex.primaryMuscles.includes(muscle) || ex.secondaryMuscles.includes(muscle)
+      ex.primaryMuscles.includes(muscle)
     )
 
     return hasEquipment && difficultyOk && notExcluded && equipmentOnlyOk && notAvoided
@@ -227,6 +230,73 @@ function scoreAndPick(
   return topN[Math.floor(Math.random() * topN.length)].ex
 }
 
+function generateFlexibilityMainWorkout(
+  eligible: Exercise[],
+  targetMinutes: number,
+): WorkoutPhase {
+  // Build a proper mobility/stretch session instead of a regular circuit
+  const flexPool = eligible.filter(e =>
+    e.category === 'flexibility' || e.isWarmUp || e.isCoolDown
+  )
+
+  const dynamicPool = flexPool.filter(e => e.isWarmUp)
+  const staticPool = flexPool.filter(e => e.isCoolDown && !e.isWarmUp)
+  const allFlexPool = [...new Set([...dynamicPool, ...staticPool])]
+
+  const usedIds = new Set<string>()
+  const blocks: CircuitBlock[] = []
+
+  // Circuit 1: Dynamic mobility (warm-up style exercises)
+  const dynamicExes = pickRandom(dynamicPool.filter(e => !usedIds.has(e.id)), Math.min(5, dynamicPool.length))
+  dynamicExes.forEach(e => usedIds.add(e.id))
+
+  if (dynamicExes.length >= 2) {
+    const exercises = dynamicExes.map(ex => {
+      const we = makeWorkoutExercise(ex, 'beginner', 1.0)
+      if (we.durationSeconds) we.durationSeconds = Math.min(we.durationSeconds, 45)
+      if (we.reps) we.reps = Math.ceil(we.reps * 0.7)
+      return we
+    })
+    blocks.push({
+      type: 'circuit',
+      name: 'Dynamic Mobility',
+      rounds: 1,
+      restBetweenExercises: 0,
+      restBetweenRounds: 0,
+      exercises,
+    })
+  }
+
+  // Circuit 2: Static stretching (cool-down style exercises)
+  const remaining = allFlexPool.filter(e => !usedIds.has(e.id))
+  const staticExes = pickRandom(remaining, Math.min(6, remaining.length))
+
+  if (staticExes.length >= 2) {
+    const exercises = staticExes.map(ex => {
+      const we = makeWorkoutExercise(ex, 'beginner', 1.0)
+      if (we.durationSeconds) we.durationSeconds = Math.max(we.durationSeconds, 45)
+      if (we.reps) we.reps = Math.ceil(we.reps * 0.8)
+      return we
+    })
+    blocks.push({
+      type: 'circuit',
+      name: 'Deep Stretch',
+      rounds: targetMinutes >= 30 ? 2 : 1,
+      restBetweenExercises: 0,
+      restBetweenRounds: 30,
+      exercises,
+    })
+  }
+
+  const totalSeconds = blocks.reduce((sum, b) => sum + estimateCircuitTime(b), 0)
+
+  return {
+    name: 'Flexibility & Mobility',
+    estimatedMinutes: Math.ceil(totalSeconds / 60),
+    blocks,
+  }
+}
+
 function generateMainWorkout(
   eligible: Exercise[],
   targetMinutes: number,
@@ -234,6 +304,11 @@ function generateMainWorkout(
   difficulty: Difficulty,
   config?: WorkoutConfig
 ): WorkoutPhase {
+  // Flexibility days get a dedicated mobility/stretch session
+  if (focus === 'flexibility') {
+    return generateFlexibilityMainWorkout(eligible, targetMinutes)
+  }
+
   const weights = CATEGORY_WEIGHTS[focus]
   const mainPool = eligible.filter(e => !e.isWarmUp || e.category !== 'flexibility')
   const usedIds = new Set<string>()
@@ -313,12 +388,24 @@ function generateMainWorkout(
     const restBetweenCircuits = circuitNum > 1 ? REST_BETWEEN_ROUNDS[difficulty] + 30 : 0
 
     if (totalSeconds + circuitTime + restBetweenCircuits > targetSeconds + 180) {
-      // Try with one fewer round
-      block.rounds = Math.max(2, rounds - 1)
-      const reducedTime = estimateCircuitTime(block)
-      if (totalSeconds + reducedTime + restBetweenCircuits <= targetSeconds + 180) {
-        totalSeconds += reducedTime + restBetweenCircuits
+      // Try progressively fewer rounds until something fits in the budget
+      let added = false
+      for (let r = rounds - 1; r >= 1; r--) {
+        block.rounds = r
+        const reducedTime = estimateCircuitTime(block)
+        if (totalSeconds + reducedTime + restBetweenCircuits <= targetSeconds + 180) {
+          totalSeconds += reducedTime + restBetweenCircuits
+          blocks.push(block)
+          added = true
+          break
+        }
+      }
+      // Guarantee at least one circuit — if nothing fit in budget (e.g. very short
+      // session with high difficulty), force a single round so the day is never empty
+      if (!added && blocks.length === 0) {
+        block.rounds = 1
         blocks.push(block)
+        totalSeconds += estimateCircuitTime(block)
       }
       break
     }
@@ -365,8 +452,11 @@ export function generateWorkout(config: WorkoutConfig): GeneratedWorkout {
   const { warmUp: warmUpMinutes, coolDown: coolDownMinutes, buffer } = getTimeAllocation(config.totalMinutes)
   const mainMinutes = config.totalMinutes - warmUpMinutes - coolDownMinutes - buffer
 
-  // Generate main workout first so we can pair stretches to it
-  const mainWorkout = generateMainWorkout(eligible, mainMinutes, config.focus || 'balanced', config.difficulty, config)
+  // Generate main workout first so we can pair stretches to it.
+  // Flexibility days use the equipment-relaxed pool so bodyweight stretch exercises
+  // aren't excluded when equipmentOnly mode is active.
+  const mainEligible = config.focus === 'flexibility' ? warmCoolEligible : eligible
+  const mainWorkout = generateMainWorkout(mainEligible, mainMinutes, config.focus || 'balanced', config.difficulty, config)
 
   // Use muscle-aware stretch pairing algorithm
   const pairing = pairStretchesToWorkout(mainWorkout, warmCoolEligible)
