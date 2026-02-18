@@ -388,12 +388,24 @@ function generateMainWorkout(
     const restBetweenCircuits = circuitNum > 1 ? REST_BETWEEN_ROUNDS[difficulty] + 30 : 0
 
     if (totalSeconds + circuitTime + restBetweenCircuits > targetSeconds + 180) {
-      // Try with one fewer round
-      block.rounds = Math.max(2, rounds - 1)
-      const reducedTime = estimateCircuitTime(block)
-      if (totalSeconds + reducedTime + restBetweenCircuits <= targetSeconds + 180) {
-        totalSeconds += reducedTime + restBetweenCircuits
+      // Try progressively fewer rounds until something fits in the budget
+      let added = false
+      for (let r = rounds - 1; r >= 1; r--) {
+        block.rounds = r
+        const reducedTime = estimateCircuitTime(block)
+        if (totalSeconds + reducedTime + restBetweenCircuits <= targetSeconds + 180) {
+          totalSeconds += reducedTime + restBetweenCircuits
+          blocks.push(block)
+          added = true
+          break
+        }
+      }
+      // Guarantee at least one circuit — if nothing fit in budget (e.g. very short
+      // session with high difficulty), force a single round so the day is never empty
+      if (!added && blocks.length === 0) {
+        block.rounds = 1
         blocks.push(block)
+        totalSeconds += estimateCircuitTime(block)
       }
       break
     }
