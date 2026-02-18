@@ -70,7 +70,7 @@ export default function PlanPage() {
         baseConfig: {
           totalMinutes: duration,
           availableEquipment: settings.equipment,
-          difficulty: 'advanced',
+          difficulty: 'advanced' as const,
           equipmentOnly: equipmentOnly && hasEquipment,
         },
         createdAt: new Date().toISOString(),
