@@ -13,6 +13,7 @@ import type { ExerciseCategory, Difficulty } from '../types/exercise'
 import type { GeneratedWorkout } from '../types/workout'
 import { IconStarFilled } from '../components/icons/Icons'
 import GlitchTitle from '../components/ui/GlitchTitle'
+import GradientLogoBox from '../components/ui/GradientLogoBox'
 
 const DIRECTIVES = [
   'STRENGTH IS DISCIPLINE.',
@@ -96,11 +97,11 @@ export default function HomePage() {
         animate={{ opacity: 1, y: 0 }}
         className="text-center mb-6"
       >
-        <div className="inline-block border-2 border-primary-500 px-4 py-1 mb-2">
+        <GradientLogoBox className="border-2 border-primary-500 px-4 py-1 mb-2">
           <h1 className="font-heading text-3xl font-bold tracking-wider text-primary-500">
             <GlitchTitle />
           </h1>
-        </div>
+        </GradientLogoBox>
         <p className="text-xs font-mono text-text-muted tracking-widest uppercase mt-2">{motto}</p>
       </motion.div>
 

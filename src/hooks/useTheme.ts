@@ -9,6 +9,7 @@ export function applyThemeColors(themeId: string) {
     root.style.setProperty(`--color-primary-${shade}`, value)
   })
   localStorage.setItem('komplex-accent', themeId)
+  window.dispatchEvent(new Event('komplex-theme-change'))
 }
 
 export function useApplyTheme() {
