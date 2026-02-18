@@ -7,18 +7,10 @@ import { accentThemes } from '../data/themes'
 import { cn } from '../utils/cn'
 import { useSound } from '../hooks/useSound'
 import { groqService } from '../lib/groqService'
-import type { Difficulty } from '../types/exercise'
-
 const durations = [30, 45, 60, 90]
 
-const difficulties: { value: Difficulty; label: string; code: string }[] = [
-  { value: 'beginner', label: 'RECRUIT', code: 'LVL-1' },
-  { value: 'intermediate', label: 'SOLDIER', code: 'LVL-2' },
-  { value: 'advanced', label: 'OPERATOR', code: 'LVL-3' },
-]
-
 export default function SettingsPage() {
-  const { settings, toggleEquipment, setDifficulty, setDuration, setAccentColor, toggleSound, toggleAICoach, setGroqApiKey, setExerciseGrouping } = useSettings()
+  const { settings, toggleEquipment, setDuration, setAccentColor, toggleSound, toggleAICoach, setGroqApiKey, setExerciseGrouping } = useSettings()
   const { clearHistory, history } = useWorkoutHistory()
   const sound = useSound()
   const [showClearConfirm, setShowClearConfirm] = useState(false)
@@ -69,28 +61,6 @@ export default function SettingsPage() {
               </motion.button>
             )
           })}
-        </div>
-      </section>
-
-      {/* Difficulty */}
-      <section className="mb-8 border-l-2 border-primary-500/30 pl-3">
-        <p className="section-header mb-3"><span className="text-primary-500">//</span> CLEARANCE LEVEL</p>
-        <div className="flex gap-2">
-          {difficulties.map(d => (
-            <button
-              key={d.value}
-              onClick={() => { sound.select(); setDifficulty(d.value) }}
-              className={cn(
-                'flex-1 py-3 text-xs font-heading font-bold transition-all text-center tracking-wider border',
-                settings.defaultDifficulty === d.value
-                  ? 'bg-primary-600 text-white border-primary-500'
-                  : 'bg-surface-1 text-text-muted border-surface-3'
-              )}
-            >
-              <span className="block text-[10px] font-mono text-text-ghost">{d.code}</span>
-              {d.label}
-            </button>
-          ))}
         </div>
       </section>
 
