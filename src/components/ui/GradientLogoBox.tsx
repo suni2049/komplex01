@@ -1,15 +1,16 @@
 import { useMemo } from 'react'
+import type { CSSProperties } from 'react'
 import { ShaderGradient, ShaderGradientCanvas } from 'shadergradient'
 import { useCurrentTheme } from '../../hooks/useCurrentTheme'
 
-// Interstellar nebula palette per accent theme.
-// color1 = deep void, color2 = nebula core, color3 = nebula edge.
+// Vivid interstellar palettes.
+// The filled box area glows; text letters become transparent cutouts revealing the dark page bg.
 const NEBULA: Record<string, { c1: string; c2: string; c3: string }> = {
-  'signal-red':      { c1: '#000000', c2: '#2d0000', c3: '#4a0a0a' },
-  'military-green':  { c1: '#000000', c2: '#071a0d', c3: '#0f2d18' },
-  'navy-blue':       { c1: '#000000', c2: '#050d1f', c3: '#0a1a3d' },
-  'star-gold':       { c1: '#000000', c2: '#1a1000', c3: '#2d1e00' },
-  'arctic-white':    { c1: '#050a14', c2: '#0f172a', c3: '#1e2d40' },
+  'signal-red':     { c1: '#050000', c2: '#8b0000', c3: '#ff2020' },
+  'military-green': { c1: '#000500', c2: '#0a5a00', c3: '#22c55e' },
+  'navy-blue':      { c1: '#00000f', c2: '#0a1a6e', c3: '#60a5fa' },
+  'star-gold':      { c1: '#050300', c2: '#7a4f00', c3: '#fbbf24' },
+  'arctic-white':   { c1: '#050a14', c2: '#1e3a5f', c3: '#7dd3fc' },
 }
 
 const FALLBACK = NEBULA['signal-red']
@@ -28,7 +29,7 @@ export default function GradientLogoBox({ children, className = '' }: Props) {
       className={`relative overflow-hidden inline-block ${className}`}
       style={{ isolation: 'isolate' }}
     >
-      {/* Interstellar shader gradient — fills the logo box only */}
+      {/* Vivid interstellar gradient fills the entire logo box */}
       <ShaderGradientCanvas
         pixelDensity={1.5}
         style={{ position: 'absolute', inset: 0, zIndex: 0 }}
@@ -36,17 +37,17 @@ export default function GradientLogoBox({ children, className = '' }: Props) {
         <ShaderGradient
           type="waterPlane"
           animate="on"
-          uSpeed={0.15}
-          uStrength={4.5}
-          uDensity={1.5}
+          uSpeed={0.2}
+          uStrength={5.5}
+          uDensity={1.8}
           uFrequency={5.5}
           uAmplitude={0}
           grain="on"
-          grainBlending={0.7}
-          brightness={1.3}
+          grainBlending={0.35}
+          brightness={2.2}
           lightType="3d"
           envPreset="city"
-          reflection={0.15}
+          reflection={0.25}
           cDistance={3.5}
           cPolarAngle={80}
           cAzimuthAngle={180}
@@ -60,8 +61,9 @@ export default function GradientLogoBox({ children, className = '' }: Props) {
         />
       </ShaderGradientCanvas>
 
-      {/* Content above the gradient */}
-      <div style={{ position: 'relative', zIndex: 1 }}>
+      {/* destination-out: wherever text pixels are opaque, the gradient beneath is erased,
+          leaving transparent cutouts that reveal the dark page background — inverted logo effect. */}
+      <div style={{ position: 'relative', zIndex: 1, mixBlendMode: 'destination-out' } as unknown as CSSProperties}>
         {children}
       </div>
     </div>
