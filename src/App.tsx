@@ -8,6 +8,7 @@ import SettingsPage from './pages/SettingsPage'
 import ExerciseBrowserPage from './pages/ExerciseBrowserPage'
 import CoachPage from './pages/CoachPage'
 import PlanPage from './pages/PlanPage'
+import SharedWorkoutPage from './pages/SharedWorkoutPage'
 import { useApplyTheme } from './hooks/useTheme'
 
 export default function App() {
@@ -25,6 +26,7 @@ export default function App() {
           <Route path="favorites" element={<FavoritesPage />} />
           <Route path="settings" element={<SettingsPage />} />
           <Route path="exercises" element={<ExerciseBrowserPage />} />
+          <Route path="share/:code" element={<SharedWorkoutPage />} />
         </Route>
       </Routes>
     </BrowserRouter>
