@@ -1,5 +1,5 @@
 import { openDB, type IDBPDatabase, type DBSchema } from 'idb'
-import type { WorkoutHistoryEntry, WorkoutPlan, WeekPlanConfig } from '../types/workout'
+import type { WorkoutHistoryEntry, WorkoutPlan, WeekPlanConfig, WorkoutFolder } from '../types/workout'
 import type { Equipment, Difficulty } from '../types/exercise'
 
 interface UserSettings {
@@ -19,7 +19,7 @@ interface CaliDB extends DBSchema {
   workoutHistory: {
     key: string
     value: WorkoutHistoryEntry
-    indexes: { 'by-date': string; 'by-favorite': number }
+    indexes: { 'by-date': string; 'by-favorite': number; 'by-folder': string }
   }
   userSettings: {
     key: string
@@ -38,14 +38,19 @@ interface CaliDB extends DBSchema {
     key: string
     value: WeekPlanConfig
   }
+  workoutFolders: {
+    key: string
+    value: WorkoutFolder
+    indexes: { 'by-order': number }
+  }
 }
 
 let dbPromise: Promise<IDBPDatabase<CaliDB>> | null = null
 
 export function getDB() {
   if (!dbPromise) {
-    dbPromise = openDB<CaliDB>('califorge-db', 2, {
-      upgrade(db, oldVersion) {
+    dbPromise = openDB<CaliDB>('califorge-db', 3, {
+      upgrade(db, oldVersion, _newVersion, transaction) {
         // Existing stores (v1)
         if (oldVersion < 1) {
           const historyStore = db.createObjectStore('workoutHistory', { keyPath: 'id' })
@@ -62,10 +67,21 @@ export function getDB() {
           planStore.createIndex('by-completion', 'isCompleted')
           db.createObjectStore('weekPlanConfigs', { keyPath: 'planId' })
         }
+
+        // Folder organization (v3)
+        if (oldVersion < 3) {
+          // Add by-folder index to the workoutHistory store (works for both fresh installs and upgrades)
+          const historyStore = transaction.objectStore('workoutHistory')
+          historyStore.createIndex('by-folder', 'folderId')
+
+          // New workoutFolders store
+          const folderStore = db.createObjectStore('workoutFolders', { keyPath: 'id' })
+          folderStore.createIndex('by-order', 'order')
+        }
       },
     })
   }
   return dbPromise
 }
 
-export type { UserSettings, WorkoutHistoryEntry, WorkoutPlan, WeekPlanConfig }
+export type { UserSettings, WorkoutHistoryEntry, WorkoutPlan, WeekPlanConfig, WorkoutFolder }
