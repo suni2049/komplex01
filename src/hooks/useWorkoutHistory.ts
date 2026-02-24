@@ -7,6 +7,7 @@ import {
   renameWorkout,
   getFavorites,
   clearHistory,
+  assignWorkoutToFolder,
 } from '../store/storage'
 import type { WorkoutHistoryEntry } from '../types/workout'
 
@@ -49,5 +50,10 @@ export function useWorkoutHistory() {
     await reload()
   }, [reload])
 
-  return { history, favorites, loading, save, remove, toggleFavorite: toggle, renameWorkout: rename, clearHistory: clear }
+  const assignToFolder = useCallback(async (workoutId: string, folderId: string | null) => {
+    await assignWorkoutToFolder(workoutId, folderId)
+    await reload()
+  }, [reload])
+
+  return { history, favorites, loading, save, remove, toggleFavorite: toggle, renameWorkout: rename, clearHistory: clear, assignToFolder }
 }

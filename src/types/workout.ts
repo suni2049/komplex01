@@ -66,8 +66,17 @@ export interface WorkoutHistoryEntry {
   exercisesCompleted: number
   exercisesSkipped: number
   isFavorite: boolean
+  folderId?: string // Reference to WorkoutFolder.id for organization
   isTemplate?: boolean // True if this is an AI-generated template (not yet completed)
   fromPlanId?: string // Link to plan if this was a planned workout
+}
+
+export interface WorkoutFolder {
+  id: string
+  name: string
+  color: string // hex color string
+  createdAt: string
+  order: number
 }
 
 export type WeekRotationStrategy = 'push-pull-legs' | 'upper-lower-full' | 'balanced'

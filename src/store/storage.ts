@@ -1,5 +1,5 @@
 import { getDB, type UserSettings } from './db'
-import type { WorkoutHistoryEntry, WorkoutPlan, WeekPlanConfig } from '../types/workout'
+import type { WorkoutHistoryEntry, WorkoutPlan, WeekPlanConfig, WorkoutFolder } from '../types/workout'
 import type { Equipment } from '../types/exercise'
 
 // === Workout History ===
@@ -51,6 +51,18 @@ export async function getFavorites(): Promise<WorkoutHistoryEntry[]> {
 export async function clearHistory(): Promise<void> {
   const db = await getDB()
   await db.clear('workoutHistory')
+}
+
+export async function assignWorkoutToFolder(workoutId: string, folderId: string | null): Promise<void> {
+  const db = await getDB()
+  const entry = await db.get('workoutHistory', workoutId)
+  if (!entry) return
+  if (folderId === null) {
+    delete entry.folderId
+  } else {
+    entry.folderId = folderId
+  }
+  await db.put('workoutHistory', entry)
 }
 
 // === Settings ===
@@ -148,4 +160,46 @@ export async function deleteWeekPlan(planId: string): Promise<void> {
 export async function getAllWeekPlanConfigs(): Promise<WeekPlanConfig[]> {
   const db = await getDB()
   return db.getAll('weekPlanConfigs')
+}
+
+// === Workout Folders ===
+
+export async function getFolders(): Promise<WorkoutFolder[]> {
+  const db = await getDB()
+  const folders = await db.getAllFromIndex('workoutFolders', 'by-order')
+  return folders
+}
+
+export async function createFolder(name: string, color: string): Promise<WorkoutFolder> {
+  const db = await getDB()
+  const existing = await db.getAll('workoutFolders')
+  const folder: WorkoutFolder = {
+    id: `folder-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+    name,
+    color,
+    createdAt: new Date().toISOString(),
+    order: existing.length,
+  }
+  await db.put('workoutFolders', folder)
+  return folder
+}
+
+export async function updateFolder(id: string, changes: Partial<Pick<WorkoutFolder, 'name' | 'color' | 'order'>>): Promise<void> {
+  const db = await getDB()
+  const folder = await db.get('workoutFolders', id)
+  if (!folder) return
+  await db.put('workoutFolders', { ...folder, ...changes })
+}
+
+export async function deleteFolder(id: string): Promise<void> {
+  const db = await getDB()
+  // Remove folder reference from all workouts in this folder
+  const all = await db.getAll('workoutHistory')
+  for (const entry of all) {
+    if (entry.folderId === id) {
+      delete entry.folderId
+      await db.put('workoutHistory', entry)
+    }
+  }
+  await db.delete('workoutFolders', id)
 }
