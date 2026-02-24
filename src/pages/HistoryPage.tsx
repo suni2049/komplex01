@@ -4,7 +4,9 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useWorkoutHistory } from '../hooks/useWorkoutHistory'
 import { formatDate, formatSeconds } from '../utils/formatTime'
 import { cn } from '../utils/cn'
-import { IconStar, IconStarFilled, IconBullet } from '../components/icons/Icons'
+import { IconStar, IconStarFilled, IconBullet, IconShare, IconCheck } from '../components/icons/Icons'
+import { encodeWorkout, buildShareUrl } from '../lib/workoutSharing'
+import type { WorkoutHistoryEntry } from '../types/workout'
 
 export default function HistoryPage() {
   const navigate = useNavigate()
@@ -14,11 +16,47 @@ export default function HistoryPage() {
   const [renameValue, setRenameValue] = useState('')
   const renameInputRef = useRef<HTMLInputElement>(null)
 
+  const [shareTarget, setShareTarget] = useState<WorkoutHistoryEntry | null>(null)
+  const [shareName, setShareName] = useState('')
+  const [shareUrl, setShareUrl] = useState<string | null>(null)
+  const [copied, setCopied] = useState(false)
+  const shareNameInputRef = useRef<HTMLInputElement>(null)
+
   useEffect(() => {
     if (renameTargetId && renameInputRef.current) {
       renameInputRef.current.focus()
     }
   }, [renameTargetId])
+
+  useEffect(() => {
+    if (shareTarget && shareNameInputRef.current) {
+      shareNameInputRef.current.focus()
+    }
+  }, [shareTarget])
+
+  function openShare(entry: WorkoutHistoryEntry) {
+    setShareTarget(entry)
+    setShareName(entry.name || '')
+    setShareUrl(null)
+    setCopied(false)
+  }
+
+  function generateLink() {
+    if (!shareTarget) return
+    const code = encodeWorkout(shareTarget.workout, shareName.trim() || undefined)
+    setShareUrl(buildShareUrl(code))
+  }
+
+  async function copyLink() {
+    if (!shareUrl) return
+    try {
+      await navigator.clipboard.writeText(shareUrl)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 3000)
+    } catch {
+      // Fallback: silent
+    }
+  }
 
   if (loading) {
     return (
@@ -161,6 +199,15 @@ export default function HistoryPage() {
                           <button
                             onClick={(e) => {
                               e.stopPropagation()
+                              openShare(entry)
+                            }}
+                            className="px-3 py-2 bg-surface-2 text-text-muted text-[10px] font-heading font-bold tracking-wider border border-surface-3 uppercase flex items-center gap-1"
+                          >
+                            <IconShare className="w-3 h-3" /> SHARE
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
                               if (!entry.isFavorite) {
                                 setRenameTargetId(entry.id)
                                 setRenameValue(entry.name || '')
@@ -249,6 +296,79 @@ export default function HistoryPage() {
                   <IconStarFilled className="w-3 h-3" /> SAVE
                 </button>
               </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Share modal */}
+      <AnimatePresence>
+        {shareTarget && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-surface-0/95 flex flex-col items-center justify-center px-6"
+            onClick={() => setShareTarget(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="w-full max-w-sm border border-primary-500 bg-surface-1 p-6"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <p className="font-heading text-sm font-bold text-primary-500 tracking-widest uppercase mb-1">SHARE PROTOCOL</p>
+              <p className="text-[10px] text-text-muted font-mono mb-4">GIVE IT A NAME OTHERS WILL SEE</p>
+
+              <input
+                ref={shareNameInputRef}
+                type="text"
+                value={shareName}
+                onChange={(e) => setShareName(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') generateLink() }}
+                placeholder="e.g. UPPER BODY DESTROYER"
+                className="w-full bg-surface-0 border border-surface-3 px-3 py-2.5 text-sm font-mono text-text-primary placeholder:text-text-ghost tracking-wider uppercase focus:border-primary-500 focus:outline-none mb-3"
+              />
+
+              {!shareUrl ? (
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setShareTarget(null)}
+                    className="flex-1 py-2.5 bg-surface-2 text-text-secondary font-heading font-bold text-[10px] tracking-wider border border-surface-3 uppercase"
+                  >
+                    CANCEL
+                  </button>
+                  <button
+                    onClick={generateLink}
+                    className="flex-1 py-2.5 bg-primary-600 text-white font-heading font-bold text-[10px] tracking-wider border border-primary-500 uppercase flex items-center justify-center gap-1.5"
+                  >
+                    <IconShare className="w-3 h-3" /> GENERATE LINK
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <div className="bg-surface-0 border border-surface-3 px-3 py-2">
+                    <p className="text-[9px] font-mono text-text-ghost break-all leading-relaxed">{shareUrl}</p>
+                  </div>
+                  <button
+                    onClick={copyLink}
+                    className="w-full py-2.5 bg-primary-600 text-white font-heading font-bold text-[10px] tracking-wider border border-primary-500 uppercase flex items-center justify-center gap-1.5"
+                  >
+                    {copied ? (
+                      <><IconCheck className="w-3 h-3" /> COPIED!</>
+                    ) : (
+                      'COPY LINK'
+                    )}
+                  </button>
+                  <button
+                    onClick={() => setShareTarget(null)}
+                    className="w-full py-2 text-text-muted font-mono text-[10px] tracking-wider"
+                  >
+                    DONE
+                  </button>
+                </div>
+              )}
             </motion.div>
           </motion.div>
         )}
