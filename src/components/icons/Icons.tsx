@@ -1,8 +1,10 @@
+import type { CSSProperties } from 'react'
 import { cn } from '../../utils/cn'
 
 interface IconProps {
     className?: string
     strokeWidth?: number
+    style?: CSSProperties
 }
 
 export function IconBodyweight({ className, strokeWidth = 2 }: IconProps) {
@@ -150,17 +152,17 @@ export function IconShare({ className, strokeWidth = 2 }: IconProps) {
     )
 }
 
-export function IconFolder({ className, strokeWidth = 2 }: IconProps) {
+export function IconFolder({ className, strokeWidth = 2, style }: IconProps) {
     return (
-        <svg className={cn("w-6 h-6", className)} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={strokeWidth}>
+        <svg className={cn("w-6 h-6", className)} style={style} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={strokeWidth}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V7z" />
         </svg>
     )
 }
 
-export function IconFolderOpen({ className, strokeWidth = 2 }: IconProps) {
+export function IconFolderOpen({ className, strokeWidth = 2, style }: IconProps) {
     return (
-        <svg className={cn("w-6 h-6", className)} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={strokeWidth}>
+        <svg className={cn("w-6 h-6", className)} style={style} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={strokeWidth}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z" />
         </svg>
     )
