@@ -71,11 +71,12 @@ function MuscleBar({ muscle, percentage, index }: { muscle: string; percentage: 
       <div className="flex-1 h-2 bg-surface-2 relative overflow-hidden">
         <motion.div
           className={cn(
-            'absolute inset-y-0 left-0 bg-primary-500',
+            'absolute inset-y-0 left-0 bg-primary-500 origin-left',
             percentage > 60 ? 'opacity-100' : percentage > 30 ? 'opacity-70' : 'opacity-40'
           )}
-          initial={{ width: 0 }}
-          animate={{ width: `${percentage}%` }}
+          style={{ width: `${percentage}%` }}
+          initial={{ scaleX: 0 }}
+          animate={{ scaleX: 1 }}
           transition={{ duration: 0.8, delay: 0.4 + index * 0.06, ease: [0.25, 0.1, 0.25, 1] }}
         />
       </div>
@@ -115,9 +116,9 @@ export default function WorkoutPreview({ workout, onRegenerate, onStart }: Worko
         {/* Decorative divider */}
         <div className="mt-2 h-px bg-surface-3 relative overflow-hidden">
           <motion.div
-            className="absolute inset-y-0 left-0 bg-primary-500"
-            initial={{ width: 0 }}
-            animate={{ width: '100%' }}
+            className="absolute inset-0 bg-primary-500 origin-left"
+            initial={{ scaleX: 0 }}
+            animate={{ scaleX: 1 }}
             transition={{ duration: 1.2, ease: [0.25, 0.1, 0.25, 1], delay: 0.3 }}
           />
         </div>

@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { MotionConfig } from 'framer-motion'
 import AppShell from './components/layout/AppShell'
 import HomePage from './pages/HomePage'
 import ActiveWorkoutPage from './pages/ActiveWorkoutPage'
@@ -15,20 +16,22 @@ export default function App() {
   useApplyTheme()
 
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route element={<AppShell />}>
-          <Route index element={<HomePage />} />
-          <Route path="workout" element={<ActiveWorkoutPage />} />
-          <Route path="plan" element={<PlanPage />} />
-          <Route path="history" element={<HistoryPage />} />
-          <Route path="coach" element={<CoachPage />} />
-          <Route path="favorites" element={<FavoritesPage />} />
-          <Route path="settings" element={<SettingsPage />} />
-          <Route path="exercises" element={<ExerciseBrowserPage />} />
-          <Route path="share/:code" element={<SharedWorkoutPage />} />
-        </Route>
-      </Routes>
-    </BrowserRouter>
+    <MotionConfig reducedMotion="user">
+      <BrowserRouter>
+        <Routes>
+          <Route element={<AppShell />}>
+            <Route index element={<HomePage />} />
+            <Route path="workout" element={<ActiveWorkoutPage />} />
+            <Route path="plan" element={<PlanPage />} />
+            <Route path="history" element={<HistoryPage />} />
+            <Route path="coach" element={<CoachPage />} />
+            <Route path="favorites" element={<FavoritesPage />} />
+            <Route path="settings" element={<SettingsPage />} />
+            <Route path="exercises" element={<ExerciseBrowserPage />} />
+            <Route path="share/:code" element={<SharedWorkoutPage />} />
+          </Route>
+        </Routes>
+      </BrowserRouter>
+    </MotionConfig>
   )
 }

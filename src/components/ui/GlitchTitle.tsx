@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 
 const SCRIPTS = [
   'KOMPLEX-01',
@@ -8,83 +8,87 @@ const SCRIPTS = [
   'كومبلكس-٠١',
 ]
 
-// Characters to use for scramble frames
 const GLITCH_CHARS = 'АБВГД漢字カタ٣٧αβγΔ01█▓░▒■'
+const GLITCH_FRAME_MS = 55
+const GLITCH_FRAMES = 8
 
 function scramble(base: string): string {
-  return base.split('').map(ch => {
-    if (ch === '-') return ch
-    if (Math.random() < 0.35) return ch
-    return GLITCH_CHARS[Math.floor(Math.random() * GLITCH_CHARS.length)]
-  }).join('')
+  let out = ''
+  for (let i = 0; i < base.length; i++) {
+    const ch = base[i]
+    if (ch === '-') {
+      out += ch
+    } else if (Math.random() < 0.35) {
+      out += ch
+    } else {
+      out += GLITCH_CHARS[(Math.random() * GLITCH_CHARS.length) | 0]
+    }
+  }
+  return out
 }
 
 export default function GlitchTitle({ className }: { className?: string }) {
-  const [display, setDisplay] = useState(SCRIPTS[0])
+  const spanRef = useRef<HTMLSpanElement>(null)
 
   useEffect(() => {
-    let timeout: ReturnType<typeof setTimeout>
-    let frameTimeout: ReturnType<typeof setTimeout>
-    let running = true
+    const el = spanRef.current
+    if (!el) return
 
-    const cycle = (scriptIndex: number) => {
-      if (!running) return
+    const reduced =
+      typeof window !== 'undefined' &&
+      window.matchMedia &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
-      // Show the current script cleanly
-      setDisplay(SCRIPTS[scriptIndex])
+    el.textContent = SCRIPTS[0]
+    if (reduced) return
 
-      // Hold the clean text for 2-4 seconds
-      const holdTime = scriptIndex === 0 ? 3000 + Math.random() * 2000 : 1200 + Math.random() * 800
+    let rafId = 0
+    let scriptIndex = 0
+    // 'hold' = show clean text until holdUntil; 'glitch' = scramble frames
+    let mode: 'hold' | 'glitch' = 'hold'
+    let holdUntil = performance.now() + 3500
+    let nextFrameAt = 0
+    let frame = 0
 
-      timeout = setTimeout(() => {
-        if (!running) return
-
-        // Glitch transition: 6-10 rapid frames of scrambled text
-        const totalFrames = 6 + Math.floor(Math.random() * 5)
-        let frame = 0
-        const nextScript = (scriptIndex + 1) % SCRIPTS.length
-
-        const glitchTick = () => {
-          if (!running) return
-          if (frame >= totalFrames) {
-            // Move to next script
-            cycle(nextScript)
-            return
-          }
-
-          // Mix between current, next, and random glitch chars
-          if (frame < 2 || frame > totalFrames - 2) {
-            // Start/end: heavy scramble
-            setDisplay(scramble(SCRIPTS[scriptIndex]))
-          } else if (Math.random() < 0.5) {
-            // Middle: flash the target script
-            setDisplay(SCRIPTS[nextScript])
-          } else {
-            // Middle: scrambled mix
-            const src = Math.random() < 0.5 ? SCRIPTS[scriptIndex] : SCRIPTS[nextScript]
-            setDisplay(scramble(src))
-          }
-
-          frame++
-          frameTimeout = setTimeout(glitchTick, 40 + Math.random() * 60)
+    const tick = (now: number) => {
+      if (mode === 'hold') {
+        if (now >= holdUntil) {
+          mode = 'glitch'
+          frame = 0
+          nextFrameAt = now
         }
-
-        glitchTick()
-      }, holdTime)
+      } else if (now >= nextFrameAt) {
+        if (frame >= GLITCH_FRAMES) {
+          // Land on the next script, enter hold
+          scriptIndex = (scriptIndex + 1) % SCRIPTS.length
+          el.textContent = SCRIPTS[scriptIndex]
+          mode = 'hold'
+          holdUntil =
+            now + (scriptIndex === 0 ? 3500 + Math.random() * 1500 : 1400 + Math.random() * 600)
+        } else {
+          const nextScript = (scriptIndex + 1) % SCRIPTS.length
+          if (frame < 2 || frame > GLITCH_FRAMES - 2) {
+            el.textContent = scramble(SCRIPTS[scriptIndex])
+          } else if (Math.random() < 0.5) {
+            el.textContent = SCRIPTS[nextScript]
+          } else {
+            const src = Math.random() < 0.5 ? SCRIPTS[scriptIndex] : SCRIPTS[nextScript]
+            el.textContent = scramble(src)
+          }
+          frame++
+          nextFrameAt = now + GLITCH_FRAME_MS
+        }
+      }
+      rafId = requestAnimationFrame(tick)
     }
 
-    cycle(0)
-
-    return () => {
-      running = false
-      clearTimeout(timeout)
-      clearTimeout(frameTimeout)
-    }
+    rafId = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(rafId)
   }, [])
 
   return (
-    <span className={`relative inline-block crt-text ${className ?? ''}`}>
-      {display}
+    <span ref={spanRef} className={`relative inline-block crt-text ${className ?? ''}`}>
+      {SCRIPTS[0]}
     </span>
   )
 }

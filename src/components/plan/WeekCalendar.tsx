@@ -85,10 +85,11 @@ export default function WeekCalendar({ plans, onStartWorkout, onClearPlan }: Wee
         {/* Progress Bar */}
         <div className="w-full h-1.5 bg-surface-2 rounded-full overflow-hidden">
           <motion.div
-            initial={{ width: 0 }}
-            animate={{ width: `${progressPercent}%` }}
+            style={{ width: `${progressPercent}%` }}
+            initial={{ scaleX: 0 }}
+            animate={{ scaleX: 1 }}
             transition={{ duration: 0.5, ease: 'easeOut' }}
-            className="h-full bg-primary-500"
+            className="h-full bg-primary-500 origin-left"
           />
         </div>
       </motion.div>

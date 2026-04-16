@@ -1,72 +1,83 @@
-import { useEffect, useState, useRef, useCallback } from 'react'
+import { useLayoutEffect, useRef } from 'react'
 import type { Pose, ExerciseAnimation, EasingPreset } from '../../types/animation'
 import { animationRegistry } from './animations'
-
-// --- Easing functions ---
 
 const easingFns: Record<EasingPreset, (t: number) => number> = {
   linear: (t) => t,
   easeIn: (t) => t * t,
   easeOut: (t) => t * (2 - t),
-  easeInOut: (t) => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t,
-  easeInOutCubic: (t) => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2,
-  snap: (t) => {
-    // fast attack (~70% done by t=0.3), slow settle
-    if (t < 0.3) return t / 0.3 * 0.7
-    return 0.7 + (t - 0.3) / 0.7 * 0.3
-  },
+  easeInOut: (t) => (t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t),
+  easeInOutCubic: (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2),
+  snap: (t) => (t < 0.3 ? (t / 0.3) * 0.7 : 0.7 + ((t - 0.3) / 0.7) * 0.3),
 }
 
-// --- Arc bias for extremity joints ---
+const ARC_BIAS = 4
+const CENTER = 100
+const TRANSITION_MS = 300
+const TWO_PI = Math.PI * 2
+const HEAD_R = 11
+const STROKE_W = 5
+const SHOULDER_T = 0.28
 
-const ARC_BIAS = 4 // pixels
-const CENTER = 100 // viewBox center
-const extremityKeys: (keyof Pose)[] = [
-  'leftHandX', 'leftHandY', 'rightHandX', 'rightHandY',
-  'leftFootX', 'leftFootY', 'rightFootX', 'rightFootY',
-]
-
-function interpolatePose(a: Pose, b: Pose, t: number): Pose {
-  const lerp = (v1: number, v2: number) => v1 + (v2 - v1) * t
-
-  const result: Pose = {
-    headX: lerp(a.headX, b.headX),
-    headY: lerp(a.headY, b.headY),
-    torsoEndX: lerp(a.torsoEndX, b.torsoEndX),
-    torsoEndY: lerp(a.torsoEndY, b.torsoEndY),
-    leftElbowX: lerp(a.leftElbowX, b.leftElbowX),
-    leftElbowY: lerp(a.leftElbowY, b.leftElbowY),
-    leftHandX: lerp(a.leftHandX, b.leftHandX),
-    leftHandY: lerp(a.leftHandY, b.leftHandY),
-    rightElbowX: lerp(a.rightElbowX, b.rightElbowX),
-    rightElbowY: lerp(a.rightElbowY, b.rightElbowY),
-    rightHandX: lerp(a.rightHandX, b.rightHandX),
-    rightHandY: lerp(a.rightHandY, b.rightHandY),
-    leftKneeX: lerp(a.leftKneeX, b.leftKneeX),
-    leftKneeY: lerp(a.leftKneeY, b.leftKneeY),
-    leftFootX: lerp(a.leftFootX, b.leftFootX),
-    leftFootY: lerp(a.leftFootY, b.leftFootY),
-    rightKneeX: lerp(a.rightKneeX, b.rightKneeX),
-    rightKneeY: lerp(a.rightKneeY, b.rightKneeY),
-    rightFootX: lerp(a.rightFootX, b.rightFootX),
-    rightFootY: lerp(a.rightFootY, b.rightFootY),
+function clonePose(p: Pose): Pose {
+  return {
+    headX: p.headX, headY: p.headY,
+    torsoEndX: p.torsoEndX, torsoEndY: p.torsoEndY,
+    leftElbowX: p.leftElbowX, leftElbowY: p.leftElbowY,
+    leftHandX: p.leftHandX, leftHandY: p.leftHandY,
+    rightElbowX: p.rightElbowX, rightElbowY: p.rightElbowY,
+    rightHandX: p.rightHandX, rightHandY: p.rightHandY,
+    leftKneeX: p.leftKneeX, leftKneeY: p.leftKneeY,
+    leftFootX: p.leftFootX, leftFootY: p.leftFootY,
+    rightKneeX: p.rightKneeX, rightKneeY: p.rightKneeY,
+    rightFootX: p.rightFootX, rightFootY: p.rightFootY,
   }
-
-  // Arc bias: push extremities outward from center at mid-interpolation
-  const arcPush = Math.sin(t * Math.PI) * ARC_BIAS
-  for (const key of extremityKeys) {
-    const mid = (a[key] + b[key]) / 2
-    result[key] += arcPush * Math.sign(mid - CENTER) * 0.5
-  }
-
-  return result
 }
 
-// --- Segment timing helpers ---
+function interpolateInto(out: Pose, a: Pose, b: Pose, t: number): void {
+  out.headX = a.headX + (b.headX - a.headX) * t
+  out.headY = a.headY + (b.headY - a.headY) * t
+  out.torsoEndX = a.torsoEndX + (b.torsoEndX - a.torsoEndX) * t
+  out.torsoEndY = a.torsoEndY + (b.torsoEndY - a.torsoEndY) * t
+  out.leftElbowX = a.leftElbowX + (b.leftElbowX - a.leftElbowX) * t
+  out.leftElbowY = a.leftElbowY + (b.leftElbowY - a.leftElbowY) * t
+  out.leftHandX = a.leftHandX + (b.leftHandX - a.leftHandX) * t
+  out.leftHandY = a.leftHandY + (b.leftHandY - a.leftHandY) * t
+  out.rightElbowX = a.rightElbowX + (b.rightElbowX - a.rightElbowX) * t
+  out.rightElbowY = a.rightElbowY + (b.rightElbowY - a.rightElbowY) * t
+  out.rightHandX = a.rightHandX + (b.rightHandX - a.rightHandX) * t
+  out.rightHandY = a.rightHandY + (b.rightHandY - a.rightHandY) * t
+  out.leftKneeX = a.leftKneeX + (b.leftKneeX - a.leftKneeX) * t
+  out.leftKneeY = a.leftKneeY + (b.leftKneeY - a.leftKneeY) * t
+  out.leftFootX = a.leftFootX + (b.leftFootX - a.leftFootX) * t
+  out.leftFootY = a.leftFootY + (b.leftFootY - a.leftFootY) * t
+  out.rightKneeX = a.rightKneeX + (b.rightKneeX - a.rightKneeX) * t
+  out.rightKneeY = a.rightKneeY + (b.rightKneeY - a.rightKneeY) * t
+  out.rightFootX = a.rightFootX + (b.rightFootX - a.rightFootX) * t
+  out.rightFootY = a.rightFootY + (b.rightFootY - a.rightFootY) * t
+
+  const arcPush = Math.sin(t * Math.PI) * ARC_BIAS * 0.5
+  const midLHX = (a.leftHandX + b.leftHandX) * 0.5
+  const midLHY = (a.leftHandY + b.leftHandY) * 0.5
+  const midRHX = (a.rightHandX + b.rightHandX) * 0.5
+  const midRHY = (a.rightHandY + b.rightHandY) * 0.5
+  const midLFX = (a.leftFootX + b.leftFootX) * 0.5
+  const midLFY = (a.leftFootY + b.leftFootY) * 0.5
+  const midRFX = (a.rightFootX + b.rightFootX) * 0.5
+  const midRFY = (a.rightFootY + b.rightFootY) * 0.5
+  out.leftHandX += arcPush * Math.sign(midLHX - CENTER)
+  out.leftHandY += arcPush * Math.sign(midLHY - CENTER)
+  out.rightHandX += arcPush * Math.sign(midRHX - CENTER)
+  out.rightHandY += arcPush * Math.sign(midRHY - CENTER)
+  out.leftFootX += arcPush * Math.sign(midLFX - CENTER)
+  out.leftFootY += arcPush * Math.sign(midLFY - CENTER)
+  out.rightFootX += arcPush * Math.sign(midRFX - CENTER)
+  out.rightFootY += arcPush * Math.sign(midRFY - CENTER)
+}
 
 interface SegmentInfo {
   index: number
-  progress: number // 0-1 within segment, raw (before easing)
+  progress: number
   easing: EasingPreset
 }
 
@@ -74,43 +85,41 @@ function getSegmentInfo(anim: ExerciseAnimation, elapsed: number): SegmentInfo {
   const totalPoses = anim.poses.length
 
   if (anim.segments && anim.segments.length > 0) {
-    // Per-segment timing
     const segs = anim.segments
-    const totalDuration = segs.reduce((sum, s) => sum + s.duration + (s.holdStart || 0) + (s.holdEnd || 0), 0)
+    let totalDuration = 0
+    for (let i = 0; i < segs.length; i++) {
+      const s = segs[i]
+      totalDuration += s.duration + (s.holdStart || 0) + (s.holdEnd || 0)
+    }
     const loopTime = elapsed % totalDuration
     let accumulated = 0
 
     for (let i = 0; i < segs.length; i++) {
       const seg = segs[i]
-      const segTotal = seg.duration + (seg.holdStart || 0) + (seg.holdEnd || 0)
+      const holdStart = seg.holdStart || 0
+      const holdEnd = seg.holdEnd || 0
+      const segTotal = seg.duration + holdStart + holdEnd
 
       if (loopTime < accumulated + segTotal) {
         const segElapsed = loopTime - accumulated
-        const holdStart = seg.holdStart || 0
-        if (segElapsed < holdStart) {
-          return { index: i, progress: 0, easing: seg.easing }
-        } else if (segElapsed > holdStart + seg.duration) {
-          return { index: i, progress: 1, easing: seg.easing }
-        } else {
-          const p = (segElapsed - holdStart) / seg.duration
-          return { index: i, progress: p, easing: seg.easing }
-        }
+        if (segElapsed < holdStart) return { index: i, progress: 0, easing: seg.easing }
+        if (segElapsed > holdStart + seg.duration) return { index: i, progress: 1, easing: seg.easing }
+        return { index: i, progress: (segElapsed - holdStart) / seg.duration, easing: seg.easing }
       }
       accumulated += segTotal
     }
-    // Fallback
     return { index: segs.length - 1, progress: 1, easing: segs[segs.length - 1].easing }
   }
 
-  // Legacy: even-split timing
   const segmentDuration = anim.duration / totalPoses
   const loopTime = elapsed % anim.duration
   const segmentIndex = Math.floor(loopTime / segmentDuration)
-  const segmentProgress = (loopTime % segmentDuration) / segmentDuration
-  return { index: segmentIndex % totalPoses, progress: segmentProgress, easing: 'easeInOut' }
+  return {
+    index: segmentIndex % totalPoses,
+    progress: (loopTime % segmentDuration) / segmentDuration,
+    easing: 'easeInOut',
+  }
 }
-
-// --- Component ---
 
 interface StickFigureProps {
   animationId: string
@@ -119,113 +128,140 @@ interface StickFigureProps {
   color?: string
 }
 
-export default function StickFigure({ animationId, playing = true, size = 160, color = 'var(--color-primary-600)' }: StickFigureProps) {
+export default function StickFigure({
+  animationId,
+  playing = true,
+  size = 160,
+  color = 'var(--color-primary-600)',
+}: StickFigureProps) {
   const anim: ExerciseAnimation | undefined = animationRegistry[animationId]
-  const [pose, setPose] = useState<Pose | null>(() => anim ? anim.poses[0] : null)
-  const rafRef = useRef<number>(0)
-  const playingRef = useRef(playing)
-  playingRef.current = playing
 
-  // Smooth transition state
-  const transitionRef = useRef<{ from: Pose; to: Pose; start: number } | null>(null)
-  const currentPoseRef = useRef<Pose | null>(null)
+  const headRef = useRef<SVGCircleElement>(null)
+  const torsoRef = useRef<SVGLineElement>(null)
+  const lUpperArmRef = useRef<SVGLineElement>(null)
+  const lForearmRef = useRef<SVGLineElement>(null)
+  const rUpperArmRef = useRef<SVGLineElement>(null)
+  const rForearmRef = useRef<SVGLineElement>(null)
+  const lThighRef = useRef<SVGLineElement>(null)
+  const lShinRef = useRef<SVGLineElement>(null)
+  const rThighRef = useRef<SVGLineElement>(null)
+  const rShinRef = useRef<SVGLineElement>(null)
 
-  // Track current pose for transitions
-  useEffect(() => {
-    if (pose) currentPoseRef.current = pose
-  }, [pose])
+  // Survives animationId changes so we can cross-fade from the last visible pose.
+  const lastPoseRef = useRef<Pose | null>(null)
 
-  // Smooth transition when animation changes
-  useEffect(() => {
-    if (anim) {
-      const prev = currentPoseRef.current
-      if (prev && playing) {
-        transitionRef.current = {
-          from: prev,
-          to: anim.poses[0],
-          start: performance.now(),
-        }
-      } else {
-        setPose(anim.poses[0])
-      }
+  useLayoutEffect(() => {
+    if (!anim) return
+
+    const tmp: Pose = clonePose(anim.poses[0])
+
+    const setLine = (
+      el: SVGLineElement | null,
+      x1: number,
+      y1: number,
+      x2: number,
+      y2: number,
+    ) => {
+      if (!el) return
+      el.x1.baseVal.value = x1
+      el.y1.baseVal.value = y1
+      el.x2.baseVal.value = x2
+      el.y2.baseVal.value = y2
     }
-  }, [animationId]) // eslint-disable-line
 
-  const animate = useCallback(() => {
-    if (!anim || !playingRef.current) return
+    const applyPose = (p: Pose) => {
+      const head = headRef.current
+      if (head) {
+        head.cx.baseVal.value = p.headX
+        head.cy.baseVal.value = p.headY
+      }
+      const torsoStartX = p.headX
+      const torsoStartY = p.headY + HEAD_R
+      const shoulderX = torsoStartX + (p.torsoEndX - torsoStartX) * SHOULDER_T
+      const shoulderY = torsoStartY + (p.torsoEndY - torsoStartY) * SHOULDER_T
 
+      setLine(torsoRef.current, torsoStartX, torsoStartY, p.torsoEndX, p.torsoEndY)
+      setLine(lUpperArmRef.current, shoulderX, shoulderY, p.leftElbowX, p.leftElbowY)
+      setLine(lForearmRef.current, p.leftElbowX, p.leftElbowY, p.leftHandX, p.leftHandY)
+      setLine(rUpperArmRef.current, shoulderX, shoulderY, p.rightElbowX, p.rightElbowY)
+      setLine(rForearmRef.current, p.rightElbowX, p.rightElbowY, p.rightHandX, p.rightHandY)
+      setLine(lThighRef.current, p.torsoEndX, p.torsoEndY, p.leftKneeX, p.leftKneeY)
+      setLine(lShinRef.current, p.leftKneeX, p.leftKneeY, p.leftFootX, p.leftFootY)
+      setLine(rThighRef.current, p.torsoEndX, p.torsoEndY, p.rightKneeX, p.rightKneeY)
+      setLine(rShinRef.current, p.rightKneeX, p.rightKneeY, p.rightFootX, p.rightFootY)
+    }
+
+    const fromPose = lastPoseRef.current
+    const transition =
+      fromPose && playing
+        ? { from: clonePose(fromPose), to: anim.poses[0], start: performance.now() }
+        : null
+
+    applyPose(transition ? transition.from : anim.poses[0])
+
+    const reduced =
+      typeof window !== 'undefined' &&
+      window.matchMedia &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+    if (!playing || reduced) {
+      lastPoseRef.current = clonePose(anim.poses[0])
+      return
+    }
+
+    let rafId = 0
     const startTime = performance.now()
+    let inTransition = transition
 
-    function tick() {
-      if (!playingRef.current) return
-      const now = performance.now()
-
-      // Handle transition cross-fade
-      const tr = transitionRef.current
-      if (tr) {
-        const tElapsed = now - tr.start
-        const TRANSITION_MS = 300
+    const tick = (now: number) => {
+      if (inTransition) {
+        const tElapsed = now - inTransition.start
         if (tElapsed < TRANSITION_MS) {
           const t = easingFns.easeOut(tElapsed / TRANSITION_MS)
-          setPose(interpolatePose(tr.from, tr.to, t))
-          rafRef.current = requestAnimationFrame(tick)
+          interpolateInto(tmp, inTransition.from, inTransition.to, t)
+          applyPose(tmp)
+          rafId = requestAnimationFrame(tick)
           return
         }
-        transitionRef.current = null
+        inTransition = null
       }
 
-      // Main animation loop
       const elapsed = now - startTime
-      const seg = getSegmentInfo(anim!, elapsed)
-      const totalPoses = anim!.poses.length
-      const currentPose = anim!.poses[seg.index % totalPoses]
-      const nextPose = anim!.poses[(seg.index + 1) % totalPoses]
+      const seg = getSegmentInfo(anim, elapsed)
+      const totalPoses = anim.poses.length
+      const a = anim.poses[seg.index % totalPoses]
+      const b = anim.poses[(seg.index + 1) % totalPoses]
       const easedT = easingFns[seg.easing](seg.progress)
-      const interpolated = interpolatePose(currentPose, nextPose, easedT)
+      interpolateInto(tmp, a, b, easedT)
 
-      // Secondary motion — universal breathing + per-animation overrides
-      const breathe = Math.sin(now / 1000 * 0.25 * Math.PI * 2) * 1.5
-      interpolated.headY += breathe
-      interpolated.torsoEndY += breathe * 0.5
+      const t = now / 1000
+      const breathe = Math.sin(t * 0.25 * TWO_PI) * 1.5
+      tmp.headY += breathe
+      tmp.torsoEndY += breathe * 0.5
 
-      if (anim!.secondaryMotion) {
-        for (const m of anim!.secondaryMotion) {
-          const offset = Math.sin(now / 1000 * m.frequency * Math.PI * 2) * m.amplitude
-          for (const joint of m.joints) {
-            interpolated[joint] += offset
+      if (anim.secondaryMotion) {
+        for (let i = 0; i < anim.secondaryMotion.length; i++) {
+          const m = anim.secondaryMotion[i]
+          const offset = Math.sin(t * m.frequency * TWO_PI) * m.amplitude
+          for (let j = 0; j < m.joints.length; j++) {
+            tmp[m.joints[j]] += offset
           }
         }
       }
 
-      setPose(interpolated)
-      rafRef.current = requestAnimationFrame(tick)
+      applyPose(tmp)
+      rafId = requestAnimationFrame(tick)
     }
 
-    rafRef.current = requestAnimationFrame(tick)
-  }, [anim])
+    rafId = requestAnimationFrame(tick)
 
-  // Start/stop animation
-  useEffect(() => {
-    if (playing && anim) {
-      animate()
-    }
     return () => {
-      if (rafRef.current) {
-        cancelAnimationFrame(rafRef.current)
-        rafRef.current = 0
-      }
+      cancelAnimationFrame(rafId)
+      lastPoseRef.current = clonePose(tmp)
     }
-  }, [playing, animationId, animate]) // eslint-disable-line
+  }, [animationId, playing, anim])
 
-  if (!pose) return null
-
-  const sw = 5
-  const headR = 11
-  const torsoStartX = pose.headX
-  const torsoStartY = pose.headY + headR
-  const shoulderT = 0.28
-  const shoulderX = torsoStartX + (pose.torsoEndX - torsoStartX) * shoulderT
-  const shoulderY = torsoStartY + (pose.torsoEndY - torsoStartY) * shoulderT
+  if (!anim) return null
 
   return (
     <svg
@@ -234,27 +270,16 @@ export default function StickFigure({ animationId, playing = true, size = 160, c
       height={size}
       style={{ overflow: 'visible' }}
     >
-      {/* Head - no fill, harsh stroke */}
-      <circle cx={pose.headX} cy={pose.headY} r={headR} fill="none" stroke={color} strokeWidth={sw} />
-
-      {/* Torso */}
-      <line x1={pose.headX} y1={pose.headY + headR} x2={pose.torsoEndX} y2={pose.torsoEndY} stroke={color} strokeWidth={sw} strokeLinecap="square" />
-
-      {/* Left Arm */}
-      <line x1={shoulderX} y1={shoulderY} x2={pose.leftElbowX} y2={pose.leftElbowY} stroke={color} strokeWidth={sw} strokeLinecap="square" />
-      <line x1={pose.leftElbowX} y1={pose.leftElbowY} x2={pose.leftHandX} y2={pose.leftHandY} stroke={color} strokeWidth={sw} strokeLinecap="square" />
-
-      {/* Right Arm */}
-      <line x1={shoulderX} y1={shoulderY} x2={pose.rightElbowX} y2={pose.rightElbowY} stroke={color} strokeWidth={sw} strokeLinecap="square" />
-      <line x1={pose.rightElbowX} y1={pose.rightElbowY} x2={pose.rightHandX} y2={pose.rightHandY} stroke={color} strokeWidth={sw} strokeLinecap="square" />
-
-      {/* Left Leg */}
-      <line x1={pose.torsoEndX} y1={pose.torsoEndY} x2={pose.leftKneeX} y2={pose.leftKneeY} stroke={color} strokeWidth={sw} strokeLinecap="square" />
-      <line x1={pose.leftKneeX} y1={pose.leftKneeY} x2={pose.leftFootX} y2={pose.leftFootY} stroke={color} strokeWidth={sw} strokeLinecap="square" />
-
-      {/* Right Leg */}
-      <line x1={pose.torsoEndX} y1={pose.torsoEndY} x2={pose.rightKneeX} y2={pose.rightKneeY} stroke={color} strokeWidth={sw} strokeLinecap="square" />
-      <line x1={pose.rightKneeX} y1={pose.rightKneeY} x2={pose.rightFootX} y2={pose.rightFootY} stroke={color} strokeWidth={sw} strokeLinecap="square" />
+      <circle ref={headRef} r={HEAD_R} fill="none" stroke={color} strokeWidth={STROKE_W} />
+      <line ref={torsoRef} stroke={color} strokeWidth={STROKE_W} strokeLinecap="square" />
+      <line ref={lUpperArmRef} stroke={color} strokeWidth={STROKE_W} strokeLinecap="square" />
+      <line ref={lForearmRef} stroke={color} strokeWidth={STROKE_W} strokeLinecap="square" />
+      <line ref={rUpperArmRef} stroke={color} strokeWidth={STROKE_W} strokeLinecap="square" />
+      <line ref={rForearmRef} stroke={color} strokeWidth={STROKE_W} strokeLinecap="square" />
+      <line ref={lThighRef} stroke={color} strokeWidth={STROKE_W} strokeLinecap="square" />
+      <line ref={lShinRef} stroke={color} strokeWidth={STROKE_W} strokeLinecap="square" />
+      <line ref={rThighRef} stroke={color} strokeWidth={STROKE_W} strokeLinecap="square" />
+      <line ref={rShinRef} stroke={color} strokeWidth={STROKE_W} strokeLinecap="square" />
     </svg>
   )
 }

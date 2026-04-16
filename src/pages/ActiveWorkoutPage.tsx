@@ -565,9 +565,12 @@ export default function ActiveWorkoutPage() {
         </div>
         <div className="h-1 bg-surface-3 overflow-hidden">
           <motion.div
-            className="h-full bg-primary-500"
-            style={{ boxShadow: '0 0 8px color-mix(in srgb, var(--color-primary-500) 60%, transparent), 0 0 2px color-mix(in srgb, var(--color-primary-600) 80%, transparent)' }}
-            animate={{ width: `${progress * 100}%` }}
+            className="h-full w-full bg-primary-500 origin-left"
+            style={{
+              boxShadow:
+                '0 0 8px color-mix(in srgb, var(--color-primary-500) 60%, transparent), 0 0 2px color-mix(in srgb, var(--color-primary-600) 80%, transparent)',
+            }}
+            animate={{ scaleX: progress }}
             transition={{ duration: 0.3, ease: 'easeOut' }}
           />
         </div>
@@ -631,43 +634,31 @@ export default function ActiveWorkoutPage() {
 
       {/* Current Exercise */}
       <div ref={exerciseContentRef} className="flex-1 flex flex-col items-center px-6 py-3 min-h-0 overflow-y-auto hide-scrollbar">
-        <AnimatePresence mode="wait">
+        {/* Stick figure stays mounted across exercises; it handles its own cross-fade on animationId change. */}
+        <div className="mb-3 bg-surface-1 p-3 border-2 border-surface-3 relative animate-glow-pulse-inset">
+          <StickFigure
+            animationId={current.exercise.exercise.animationId}
+            playing={!isPaused}
+            size={140}
+          />
+        </div>
+
+        <AnimatePresence mode="wait" initial={false}>
           <motion.div
             key={currentIndex}
-            initial={{ opacity: 0, x: 60, scale: 0.96 }}
-            animate={{ opacity: 1, x: 0, scale: 1 }}
-            exit={{ opacity: 0, x: -60, scale: 0.96 }}
-            transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
-            className="w-full flex flex-col items-center"
+            initial={{ opacity: 0, x: 40 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -40 }}
+            transition={{ duration: 0.22, ease: [0.25, 0.1, 0.25, 1] }}
+            className="w-full flex flex-col items-center will-change-transform"
           >
-            {/* Stick figure */}
-            <div
-              className="mb-3 bg-surface-1 p-3 border-2 border-surface-3 relative animate-glow-pulse-inset"
-            >
-              <StickFigure
-                animationId={current.exercise.exercise.animationId}
-                playing={!isPaused}
-                size={140}
-              />
-            </div>
-
             {/* Exercise name */}
-            <motion.h2
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.08, duration: 0.25 }}
-              className="font-heading text-xl font-bold text-center text-text-primary tracking-wider uppercase mb-1"
-            >
+            <h2 className="font-heading text-xl font-bold text-center text-text-primary tracking-wider uppercase mb-1">
               {current.exercise.exercise.name}
-            </motion.h2>
+            </h2>
 
             {/* Rep/time info */}
-            <motion.div
-              className="text-center mb-2"
-              initial={{ scale: 0.85, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ delay: 0.15, type: 'spring', stiffness: 300, damping: 20 }}
-            >
+            <div className="text-center mb-2">
               {current.exercise.durationSeconds ? (
                 <p className="font-mono text-4xl font-bold text-primary-500" style={{ textShadow: '0 0 12px color-mix(in srgb, var(--color-primary-500) 30%, transparent)' }}>
                   {timer.secondsLeft}S
@@ -677,29 +668,19 @@ export default function ActiveWorkoutPage() {
                   {current.exercise.reps}{current.exercise.perSide ? ' EACH' : ' REPS'}
                 </p>
               )}
-            </motion.div>
+            </div>
 
             {/* Category badges */}
-            <motion.div
-              className="flex gap-1.5 mb-3"
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2, duration: 0.25 }}
-            >
+            <div className="flex gap-1.5 mb-3">
               {current.exercise.exercise.primaryMuscles.slice(0, 3).map(m => (
                 <span key={m} className="text-[10px] bg-primary-900 text-primary-400 px-1.5 py-0.5 border border-primary-700 font-mono uppercase">
                   {m.replace('-', ' ')}
                 </span>
               ))}
-            </motion.div>
+            </div>
 
             {/* Instructions */}
-            <motion.div
-              className="w-full card-base p-4"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.25, duration: 0.3 }}
-            >
+            <div className="w-full card-base p-4">
               <p className="section-header mb-2">// EXECUTION PROTOCOL</p>
               {current.exercise.exercise.instructions.map((step, i) => (
                 <div key={i} className="flex gap-2 mb-1.5">
@@ -707,7 +688,7 @@ export default function ActiveWorkoutPage() {
                   <p className="text-sm text-text-secondary leading-snug">{step}</p>
                 </div>
               ))}
-            </motion.div>
+            </div>
           </motion.div>
         </AnimatePresence>
       </div>
