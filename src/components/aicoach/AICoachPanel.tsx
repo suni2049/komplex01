@@ -118,7 +118,7 @@ export default function AICoachPanel({
                     AI COACH
                   </h2>
                   <p className="text-[9px] font-mono text-text-ghost tracking-wider">
-                    TACTICAL TRAINING ASSISTANT
+                    PERSONAL TRAINING ASSISTANT
                   </p>
                 </div>
                 <button

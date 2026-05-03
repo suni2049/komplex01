@@ -393,7 +393,7 @@ export default function ActiveWorkoutPage() {
             transition={{ delay: 0.4 }}
             className="font-heading text-2xl font-bold tracking-widest text-primary-500 mb-1"
           >
-            MISSION COMPLETE
+            WORKOUT COMPLETE
           </motion.h1>
           <motion.p
             initial={{ opacity: 0 }}
@@ -510,7 +510,7 @@ export default function ActiveWorkoutPage() {
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.1 }}
               className="font-heading text-lg font-bold text-primary-500 tracking-widest uppercase mb-2"
-            >ABORT MISSION?</motion.p>
+            >STOP WORKOUT?</motion.p>
             <motion.p
               initial={{ y: -6, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}

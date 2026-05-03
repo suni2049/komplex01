@@ -68,7 +68,7 @@ export default function HistoryPage() {
 
   return (
     <div className="px-4 pt-10 pb-6">
-      <h1 className="font-heading text-2xl font-bold mb-6 text-text-primary tracking-wider">OPERATION LOG</h1>
+      <h1 className="font-heading text-2xl font-bold mb-6 text-text-primary tracking-wider">TRAINING LOG</h1>
 
       {history.length === 0 ? (
         <motion.div

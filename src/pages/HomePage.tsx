@@ -17,10 +17,10 @@ import GradientLogoBox from '../components/ui/GradientLogoBox'
 
 const DIRECTIVES = [
   'STRENGTH IS DISCIPLINE.',
-  'THE BODY IS A WEAPON. SHARPEN IT.',
-  'NO RETREAT. NO SURRENDER.',
+  'PUSH YOUR LIMITS. EXCEED THEM.',
+  'NEVER QUIT. NEVER STOP.',
   'WEAKNESS IS A CHOICE. CHOOSE STRENGTH.',
-  'YOUR DUTY AWAITS.',
+  'YOUR BEST AWAITS.',
   'PAIN IS TEMPORARY. GLORY IS FOREVER.',
   'FORGE YOURSELF IN IRON.',
   'DEMAND YOUR BEST.',
@@ -100,7 +100,7 @@ export default function HomePage() {
 
       {/* Focus selector */}
       <div className="mb-5">
-        <p className="section-header">// MISSION FOCUS</p>
+        <p className="section-header">// TRAINING FOCUS</p>
         <div className="flex gap-1.5 flex-wrap">
           {focusOptions.map(opt => (
             <button
@@ -224,7 +224,7 @@ export default function HomePage() {
       {/* Recent workouts */}
       {recentWorkouts.length > 0 && (
         <div className="mt-8">
-          <p className="section-header mb-3">// RECENT OPERATIONS</p>
+          <p className="section-header mb-3">// RECENT SESSIONS</p>
           <div className="space-y-2">
             {recentWorkouts.map(entry => (
               <motion.div

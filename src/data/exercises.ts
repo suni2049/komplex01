@@ -336,7 +336,7 @@ export const exercises: Exercise[] = [
   {
     id: 'commando-pull-up',
     name: 'Commando Pull-Up',
-    description: 'A neutral-grip pull-up where you alternate pulling to each side of the bar. Hits the lats asymmetrically and recruits the obliques for stability — a true tactical movement.',
+    description: 'A neutral-grip pull-up where you alternate pulling to each side of the bar. Hits the lats asymmetrically and recruits the obliques for stability — a true asymmetric movement.',
     instructions: [
       'Stand perpendicular to the bar and grip it with both hands close together, one in front of the other — like gripping a baseball bat',
       'Pull yourself up, bringing your head to one side of the bar so your shoulder touches it',
