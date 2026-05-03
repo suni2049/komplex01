@@ -22,7 +22,7 @@ export default function SettingsPage() {
     <div className="px-4 pt-10 pb-6">
       <div className="mb-6 border-b-2 border-primary-500 pb-3">
         <h1 className="font-heading text-2xl font-bold text-text-primary tracking-wider">CONFIGURATION</h1>
-        <p className="text-[10px] font-mono text-primary-500 tracking-widest mt-1">SYS.CONFIG // OPERATOR PREFERENCES</p>
+        <p className="text-[10px] font-mono text-primary-500 tracking-widest mt-1">SYS.CONFIG // USER PREFERENCES</p>
       </div>
 
       {/* Equipment */}

@@ -10,7 +10,7 @@ export const accentThemes: AccentTheme[] = [
   {
     id: 'signal-red',
     name: 'Signal Red',
-    label: 'STANDARD ISSUE',
+    label: 'DEFAULT',
     preview: '#DC2626',
     colors: {
       '50': '#1A0808', '100': '#2D0E0E', '200': '#4A1515',
@@ -19,9 +19,9 @@ export const accentThemes: AccentTheme[] = [
     },
   },
   {
-    id: 'military-green',
-    name: 'Military Green',
-    label: 'FIELD OPS',
+    id: 'forest-green',
+    name: 'Forest Green',
+    label: 'FIELD',
     preview: '#22C55E',
     colors: {
       '50': '#071A0D', '100': '#0D2B16', '200': '#14532D',
@@ -32,7 +32,7 @@ export const accentThemes: AccentTheme[] = [
   {
     id: 'navy-blue',
     name: 'Navy Blue',
-    label: 'NAVAL OPS',
+    label: 'DEEP BLUE',
     preview: '#3B82F6',
     colors: {
       '50': '#0A1228', '100': '#0F1D40', '200': '#1E3A5F',
@@ -43,7 +43,7 @@ export const accentThemes: AccentTheme[] = [
   {
     id: 'star-gold',
     name: 'Star Gold',
-    label: 'COMMENDATION',
+    label: 'PRESTIGE',
     preview: '#EAB308',
     colors: {
       '50': '#1A1508', '100': '#2D250E', '200': '#4A3D15',
@@ -54,7 +54,7 @@ export const accentThemes: AccentTheme[] = [
   {
     id: 'arctic-white',
     name: 'Arctic White',
-    label: 'WINTER CAMO',
+    label: 'FROST',
     preview: '#94A3B8',
     colors: {
       '50': '#0F172A', '100': '#1E293B', '200': '#334155',

@@ -147,17 +147,17 @@ export default function WorkoutPreview({ workout, onRegenerate, onStart }: Worko
       <motion.div variants={itemVariants} className="flex gap-2">
         <div className="flex-1 bg-surface-2 border border-surface-3 px-2 py-1.5 text-center">
           <span className="text-[10px] font-mono text-success-400">
-            RECRUIT: {stats.difficultyDistribution.beginner}
+            BEGINNER: {stats.difficultyDistribution.beginner}
           </span>
         </div>
         <div className="flex-1 bg-surface-2 border border-surface-3 px-2 py-1.5 text-center">
           <span className="text-[10px] font-mono text-accent-500">
-            SOLDIER: {stats.difficultyDistribution.intermediate}
+            INTER: {stats.difficultyDistribution.intermediate}
           </span>
         </div>
         <div className="flex-1 bg-surface-2 border border-surface-3 px-2 py-1.5 text-center">
           <span className="text-[10px] font-mono text-primary-500">
-            OPERATOR: {stats.difficultyDistribution.advanced}
+            ADVANCED: {stats.difficultyDistribution.advanced}
           </span>
         </div>
       </motion.div>

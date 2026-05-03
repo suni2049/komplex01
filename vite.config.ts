@@ -16,7 +16,7 @@ export default defineConfig({
       manifest: {
         name: 'KOMPLEX-01 — Training System',
         short_name: 'KOMPLEX-01',
-        description: 'Military-style calisthenics training protocol generator',
+        description: 'AI-powered calisthenics training protocol generator',
         theme_color: '#0A0A0A',
         background_color: '#0A0A0A',
         display: 'standalone',

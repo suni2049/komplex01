@@ -7,7 +7,7 @@ import { useCurrentTheme } from '../../hooks/useCurrentTheme'
 // The filled box area glows; text letters become transparent cutouts revealing the dark page bg.
 const NEBULA: Record<string, { c1: string; c2: string; c3: string }> = {
   'signal-red':     { c1: '#050000', c2: '#8b0000', c3: '#ff2020' },
-  'military-green': { c1: '#000500', c2: '#0a5a00', c3: '#22c55e' },
+  'forest-green': { c1: '#000500', c2: '#0a5a00', c3: '#22c55e' },
   'navy-blue':      { c1: '#00000f', c2: '#0a1a6e', c3: '#60a5fa' },
   'star-gold':      { c1: '#050300', c2: '#7a4f00', c3: '#fbbf24' },
   'arctic-white':   { c1: '#050a14', c2: '#1e3a5f', c3: '#7dd3fc' },

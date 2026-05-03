@@ -74,7 +74,7 @@ export default function SharedWorkoutPage() {
     <div className="px-4 pt-10 pb-6">
       {/* Header */}
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-6">
-        <p className="text-[10px] font-mono text-primary-500 tracking-widest mb-1">INCOMING TRANSMISSION</p>
+        <p className="text-[10px] font-mono text-primary-500 tracking-widest mb-1">SHARED WORKOUT</p>
         <h1 className="font-heading text-2xl font-bold text-text-primary tracking-wider">
           {workoutName ? workoutName.toUpperCase() : 'SHARED PROTOCOL'}
         </h1>

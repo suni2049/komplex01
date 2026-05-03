@@ -11,10 +11,10 @@ const categories: (ExerciseCategory | 'all')[] = ['all', 'push', 'pull', 'legs',
 const difficultyFilters: (Difficulty | 'all')[] = ['all', 'beginner', 'intermediate', 'advanced']
 
 const difficultyLabels: Record<string, string> = {
-  all: 'ALL RANKS',
-  beginner: 'RECRUIT',
-  intermediate: 'SOLDIER',
-  advanced: 'OPERATOR',
+  all: 'ALL LEVELS',
+  beginner: 'BEGINNER',
+  intermediate: 'INTERMEDIATE',
+  advanced: 'ADVANCED',
 }
 
 export default function ExerciseBrowserPage() {
@@ -54,7 +54,7 @@ export default function ExerciseBrowserPage() {
           placeholder="SEARCH EXERCISES..."
           value={search}
           onChange={e => setSearch(e.target.value)}
-          className="w-full pl-10 pr-4 py-2.5 input-military text-sm"
+          className="w-full pl-10 pr-4 py-2.5 input-styled text-sm"
         />
       </div>
 
