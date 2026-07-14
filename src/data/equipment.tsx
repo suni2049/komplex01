@@ -9,6 +9,8 @@ import {
     IconMat,
     IconJumpRope,
     IconParallettes,
+    IconKettlebell,
+    IconPole,
 } from '../components/icons/Icons'
 
 export interface EquipmentInfo {
@@ -27,4 +29,6 @@ export const equipmentList: EquipmentInfo[] = [
     { id: 'yoga-mat', name: 'Yoga Mat', icon: <IconMat className="w-5 h-5" />, description: 'Padded exercise mat' },
     { id: 'jump-rope', name: 'Jump Rope', icon: <IconJumpRope className="w-5 h-5" />, description: 'Speed or weighted rope' },
     { id: 'parallettes', name: 'Parallettes', icon: <IconParallettes className="w-5 h-5" />, description: 'Low parallel bars' },
+    { id: 'kettlebell', name: 'Kettlebell', icon: <IconKettlebell className="w-5 h-5" />, description: 'Single or pair of kettlebells' },
+    { id: 'pole', name: 'Exercise Pole', icon: <IconPole className="w-5 h-5" />, description: 'Vertical floor-standing fitness pole' },
 ]

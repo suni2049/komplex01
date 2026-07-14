@@ -12,6 +12,7 @@ export type Difficulty = 'beginner' | 'intermediate' | 'advanced'
 export type Equipment =
   | 'none' | 'push-up-bars' | 'pull-up-bar' | 'resistance-bands'
   | 'dumbbell' | 'yoga-mat' | 'jump-rope' | 'parallettes'
+  | 'kettlebell' | 'pole'
 
 export type RepScheme =
   | { type: 'reps'; defaultReps: number }
