@@ -72,6 +72,22 @@ export function IconParallettes({ className, strokeWidth = 2 }: IconProps) {
     )
 }
 
+export function IconKettlebell({ className, strokeWidth = 2 }: IconProps) {
+    return (
+        <svg className={cn("w-6 h-6", className)} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={strokeWidth}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 8a3 3 0 116 0M8.5 8.5C6.4 9.7 5 12 5 14.5A5.5 5.5 0 0016 18.66 5.5 5.5 0 0015.5 8.5" />
+        </svg>
+    )
+}
+
+export function IconPole({ className, strokeWidth = 2 }: IconProps) {
+    return (
+        <svg className={cn("w-6 h-6", className)} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={strokeWidth}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v18M12 3h5M12 21H7m5 0h5" />
+        </svg>
+    )
+}
+
 export function IconStar({ className, strokeWidth = 2 }: IconProps) {
     return (
         <svg className={cn("w-6 h-6", className)} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={strokeWidth}>
