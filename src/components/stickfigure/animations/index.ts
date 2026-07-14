@@ -1106,4 +1106,417 @@ export const animationRegistry: Record<string, ExerciseAnimation> = {
       { duration: 550, easing: 'easeOut', holdEnd: 100 },
     ],
   },
+
+  // ============================================================
+  // KETTLEBELL — bell tracks the gripping hand(s)
+  // ============================================================
+
+  // === KETTLEBELL SWING (hinge → hip snap, bell swings up) ===
+  kettlebellSwing: {
+    id: 'kettlebellSwing',
+    duration: 1600,
+    prop: { kind: 'kettlebell', grip: 'both' },
+    poses: [
+      // Hinged back — bell between the legs
+      { headX: 68, headY: 58, torsoEndX: 100, torsoEndY: 108,
+        leftElbowX: 88, leftElbowY: 92, leftHandX: 96, leftHandY: 122,
+        rightElbowX: 110, rightElbowY: 92, rightHandX: 104, rightHandY: 122,
+        leftKneeX: 82, leftKneeY: 138, leftFootX: 72, leftFootY: 170,
+        rightKneeX: 118, rightKneeY: 138, rightFootX: 128, rightFootY: 170 },
+      // Standing tall — bell swung up to chest height
+      { headX: 100, headY: 28, torsoEndX: 100, torsoEndY: 100,
+        leftElbowX: 92, leftElbowY: 58, leftHandX: 96, leftHandY: 44,
+        rightElbowX: 108, rightElbowY: 58, rightHandX: 104, rightHandY: 44,
+        leftKneeX: 86, leftKneeY: 135, leftFootX: 72, leftFootY: 170,
+        rightKneeX: 114, rightKneeY: 135, rightFootX: 128, rightFootY: 170 },
+    ],
+    segments: [
+      { duration: 300, easing: 'snap' },                 // hinge → stand: hip drive
+      { duration: 450, easing: 'easeIn', holdEnd: 80 },  // stand → hinge: gravity
+    ],
+  },
+
+  // === KETTLEBELL GOBLET SQUAT (bell held at chest) ===
+  kettlebellGobletSquat: {
+    id: 'kettlebellGobletSquat',
+    duration: 2400,
+    prop: { kind: 'kettlebell', grip: 'both' },
+    poses: [
+      // Standing — bell at chest
+      { headX: 100, headY: 30, torsoEndX: 100, torsoEndY: 100,
+        leftElbowX: 84, leftElbowY: 66, leftHandX: 94, leftHandY: 70,
+        rightElbowX: 116, rightElbowY: 66, rightHandX: 106, rightHandY: 70,
+        leftKneeX: 88, leftKneeY: 135, leftFootX: 82, leftFootY: 170,
+        rightKneeX: 112, rightKneeY: 135, rightFootX: 118, rightFootY: 170 },
+      // Deep squat — bell stays at chest, torso upright
+      { headX: 100, headY: 58, torsoEndX: 100, torsoEndY: 116,
+        leftElbowX: 82, leftElbowY: 86, leftHandX: 94, leftHandY: 88,
+        rightElbowX: 118, rightElbowY: 86, rightHandX: 106, rightHandY: 88,
+        leftKneeX: 74, leftKneeY: 135, leftFootX: 78, leftFootY: 170,
+        rightKneeX: 126, rightKneeY: 135, rightFootX: 122, rightFootY: 170 },
+    ],
+    segments: [
+      { duration: 650, easing: 'easeOut', holdEnd: 100 },
+      { duration: 550, easing: 'easeIn', holdEnd: 100 },
+    ],
+  },
+
+  // === KETTLEBELL DEADLIFT (bell lowered between feet) ===
+  kettlebellDeadlift: {
+    id: 'kettlebellDeadlift',
+    duration: 2400,
+    prop: { kind: 'kettlebell', grip: 'both' },
+    poses: [
+      // Standing tall — bell in front of thighs
+      { headX: 100, headY: 30, torsoEndX: 100, torsoEndY: 100,
+        leftElbowX: 90, leftElbowY: 72, leftHandX: 96, leftHandY: 96,
+        rightElbowX: 110, rightElbowY: 72, rightHandX: 104, rightHandY: 96,
+        leftKneeX: 88, leftKneeY: 135, leftFootX: 82, leftFootY: 170,
+        rightKneeX: 112, rightKneeY: 135, rightFootX: 118, rightFootY: 170 },
+      // Hinged — bell near the floor between the feet
+      { headX: 66, headY: 56, torsoEndX: 100, torsoEndY: 106,
+        leftElbowX: 90, leftElbowY: 108, leftHandX: 96, leftHandY: 132,
+        rightElbowX: 110, rightElbowY: 108, rightHandX: 104, rightHandY: 132,
+        leftKneeX: 84, leftKneeY: 138, leftFootX: 78, leftFootY: 170,
+        rightKneeX: 116, rightKneeY: 138, rightFootX: 122, rightFootY: 170 },
+    ],
+    segments: [
+      { duration: 650, easing: 'easeOut', holdEnd: 120 },
+      { duration: 600, easing: 'easeIn', holdEnd: 120 },
+    ],
+  },
+
+  // === KETTLEBELL OVERHEAD PRESS (single arm, right) ===
+  kettlebellPress: {
+    id: 'kettlebellPress',
+    duration: 2200,
+    prop: { kind: 'kettlebell', grip: 'right' },
+    poses: [
+      // Rack — bell at shoulder, elbow tucked
+      { headX: 100, headY: 30, torsoEndX: 100, torsoEndY: 100,
+        leftElbowX: 78, leftElbowY: 72, leftHandX: 74, leftHandY: 98,
+        rightElbowX: 118, rightElbowY: 72, rightHandX: 114, rightHandY: 56,
+        leftKneeX: 88, leftKneeY: 135, leftFootX: 82, leftFootY: 170,
+        rightKneeX: 112, rightKneeY: 135, rightFootX: 118, rightFootY: 170 },
+      // Locked out overhead
+      { headX: 100, headY: 30, torsoEndX: 100, torsoEndY: 100,
+        leftElbowX: 78, leftElbowY: 72, leftHandX: 74, leftHandY: 98,
+        rightElbowX: 114, rightElbowY: 42, rightHandX: 110, rightHandY: 16,
+        leftKneeX: 88, leftKneeY: 135, leftFootX: 82, leftFootY: 170,
+        rightKneeX: 112, rightKneeY: 135, rightFootX: 118, rightFootY: 170 },
+    ],
+    segments: [
+      { duration: 550, easing: 'easeIn', holdEnd: 120 },
+      { duration: 550, easing: 'easeOut', holdEnd: 120 },
+    ],
+  },
+
+  // === KETTLEBELL ROW (single arm, right, bent over) ===
+  kettlebellRow: {
+    id: 'kettlebellRow',
+    duration: 2200,
+    prop: { kind: 'kettlebell', grip: 'right' },
+    poses: [
+      // Hinged over — right arm hanging with bell
+      { headX: 58, headY: 72, torsoEndX: 120, torsoEndY: 98,
+        leftElbowX: 74, leftElbowY: 92, leftHandX: 86, leftHandY: 110,
+        rightElbowX: 132, rightElbowY: 108, rightHandX: 136, rightHandY: 128,
+        leftKneeX: 104, leftKneeY: 120, leftFootX: 96, leftFootY: 166,
+        rightKneeX: 138, rightKneeY: 124, rightFootX: 150, rightFootY: 168 },
+      // Rowed — elbow driven up, bell to hip
+      { headX: 58, headY: 72, torsoEndX: 120, torsoEndY: 98,
+        leftElbowX: 74, leftElbowY: 92, leftHandX: 86, leftHandY: 110,
+        rightElbowX: 128, rightElbowY: 82, rightHandX: 126, rightHandY: 102,
+        leftKneeX: 104, leftKneeY: 120, leftFootX: 96, leftFootY: 166,
+        rightKneeX: 138, rightKneeY: 124, rightFootX: 150, rightFootY: 168 },
+    ],
+    segments: [
+      { duration: 500, easing: 'easeIn', holdEnd: 150 },
+      { duration: 550, easing: 'easeOut', holdEnd: 120 },
+    ],
+  },
+
+  // === KETTLEBELL GOBLET LUNGE (bell at chest) ===
+  kettlebellGobletLunge: {
+    id: 'kettlebellGobletLunge',
+    duration: 2400,
+    prop: { kind: 'kettlebell', grip: 'both' },
+    poses: [
+      // Standing — bell at chest
+      { headX: 100, headY: 30, torsoEndX: 100, torsoEndY: 100,
+        leftElbowX: 84, leftElbowY: 66, leftHandX: 94, leftHandY: 70,
+        rightElbowX: 116, rightElbowY: 66, rightHandX: 106, rightHandY: 70,
+        leftKneeX: 88, leftKneeY: 135, leftFootX: 82, leftFootY: 170,
+        rightKneeX: 112, rightKneeY: 135, rightFootX: 118, rightFootY: 170 },
+      // Deep lunge — bell stays at chest
+      { headX: 100, headY: 42, torsoEndX: 100, torsoEndY: 110,
+        leftElbowX: 84, leftElbowY: 78, leftHandX: 94, leftHandY: 82,
+        rightElbowX: 116, rightElbowY: 78, rightHandX: 106, rightHandY: 82,
+        leftKneeX: 70, leftKneeY: 130, leftFootX: 55, leftFootY: 170,
+        rightKneeX: 130, rightKneeY: 150, rightFootX: 140, rightFootY: 170 },
+    ],
+    segments: [
+      { duration: 600, easing: 'easeOut', holdEnd: 100 },
+      { duration: 550, easing: 'easeIn', holdEnd: 100 },
+    ],
+  },
+
+  // === KETTLEBELL HALO (bell orbits the head) ===
+  kettlebellHalo: {
+    id: 'kettlebellHalo',
+    duration: 2600,
+    prop: { kind: 'kettlebell', grip: 'both' },
+    poses: [
+      // Front — bell below chin
+      { headX: 100, headY: 30, torsoEndX: 100, torsoEndY: 100,
+        leftElbowX: 86, leftElbowY: 56, leftHandX: 96, leftHandY: 48,
+        rightElbowX: 114, rightElbowY: 56, rightHandX: 104, rightHandY: 48,
+        leftKneeX: 88, leftKneeY: 135, leftFootX: 82, leftFootY: 170,
+        rightKneeX: 112, rightKneeY: 135, rightFootX: 118, rightFootY: 170 },
+      // Right side of head
+      { headX: 100, headY: 30, torsoEndX: 100, torsoEndY: 100,
+        leftElbowX: 100, leftElbowY: 46, leftHandX: 116, leftHandY: 34,
+        rightElbowX: 118, rightElbowY: 46, rightHandX: 122, rightHandY: 34,
+        leftKneeX: 88, leftKneeY: 135, leftFootX: 82, leftFootY: 170,
+        rightKneeX: 112, rightKneeY: 135, rightFootX: 118, rightFootY: 170 },
+      // Behind / above head
+      { headX: 100, headY: 30, torsoEndX: 100, torsoEndY: 100,
+        leftElbowX: 86, leftElbowY: 30, leftHandX: 96, leftHandY: 16,
+        rightElbowX: 114, rightElbowY: 30, rightHandX: 104, rightHandY: 16,
+        leftKneeX: 88, leftKneeY: 135, leftFootX: 82, leftFootY: 170,
+        rightKneeX: 112, rightKneeY: 135, rightFootX: 118, rightFootY: 170 },
+      // Left side of head
+      { headX: 100, headY: 30, torsoEndX: 100, torsoEndY: 100,
+        leftElbowX: 82, leftElbowY: 46, leftHandX: 78, leftHandY: 34,
+        rightElbowX: 100, rightElbowY: 46, rightHandX: 84, rightHandY: 34,
+        leftKneeX: 88, leftKneeY: 135, leftFootX: 82, leftFootY: 170,
+        rightKneeX: 112, rightKneeY: 135, rightFootX: 118, rightFootY: 170 },
+    ],
+    segments: [
+      { duration: 600, easing: 'easeInOut' },
+      { duration: 600, easing: 'easeInOut' },
+      { duration: 600, easing: 'easeInOut' },
+      { duration: 600, easing: 'easeInOut' },
+    ],
+  },
+
+  // === KETTLEBELL RUSSIAN TWIST (seated, bell side to side) ===
+  kettlebellRussianTwist: {
+    id: 'kettlebellRussianTwist',
+    duration: 1800,
+    prop: { kind: 'kettlebell', grip: 'both' },
+    poses: [
+      // Twist left — bell beside left hip
+      { headX: 85, headY: 50, torsoEndX: 100, torsoEndY: 120,
+        leftElbowX: 58, leftElbowY: 82, leftHandX: 50, leftHandY: 92,
+        rightElbowX: 72, rightElbowY: 82, rightHandX: 58, rightHandY: 92,
+        leftKneeX: 85, leftKneeY: 115, leftFootX: 80, leftFootY: 95,
+        rightKneeX: 115, rightKneeY: 115, rightFootX: 120, rightFootY: 95 },
+      // Twist right — bell beside right hip
+      { headX: 115, headY: 50, torsoEndX: 100, torsoEndY: 120,
+        leftElbowX: 128, leftElbowY: 82, leftHandX: 142, leftHandY: 92,
+        rightElbowX: 142, rightElbowY: 82, rightHandX: 150, rightHandY: 92,
+        leftKneeX: 85, leftKneeY: 115, leftFootX: 80, leftFootY: 95,
+        rightKneeX: 115, rightKneeY: 115, rightFootX: 120, rightFootY: 95 },
+    ],
+    segments: [
+      { duration: 400, easing: 'easeInOut', holdEnd: 80 },
+      { duration: 400, easing: 'easeInOut', holdEnd: 80 },
+    ],
+  },
+
+  // ============================================================
+  // POLE — fixed vertical bar; hands/legs grip it
+  // ============================================================
+
+  // === POLE CLIMB (body shifts up the pole) ===
+  poleClimb: {
+    id: 'poleClimb',
+    duration: 2200,
+    prop: { kind: 'pole', x: 100 },
+    poses: [
+      // Lower — reaching for a higher grip
+      { headX: 100, headY: 54, torsoEndX: 100, torsoEndY: 120,
+        leftElbowX: 92, leftElbowY: 38, leftHandX: 98, leftHandY: 22,
+        rightElbowX: 108, rightElbowY: 46, rightHandX: 102, rightHandY: 32,
+        leftKneeX: 86, leftKneeY: 100, leftFootX: 98, leftFootY: 128,
+        rightKneeX: 114, rightKneeY: 110, rightFootX: 102, rightFootY: 142 },
+      // Higher — pulled up, legs re-gripped
+      { headX: 100, headY: 38, torsoEndX: 100, torsoEndY: 104,
+        leftElbowX: 94, leftElbowY: 26, leftHandX: 98, leftHandY: 12,
+        rightElbowX: 106, rightElbowY: 32, rightHandX: 102, rightHandY: 20,
+        leftKneeX: 88, leftKneeY: 84, leftFootX: 98, leftFootY: 112,
+        rightKneeX: 112, rightKneeY: 92, rightFootX: 102, rightFootY: 122 },
+    ],
+    segments: [
+      { duration: 700, easing: 'easeInOut', holdEnd: 120 },
+      { duration: 700, easing: 'easeOut', holdEnd: 120 },
+    ],
+  },
+
+  // === POLE PULL-UP (stacked grip on the pole) ===
+  polePullUp: {
+    id: 'polePullUp',
+    duration: 3000,
+    prop: { kind: 'pole', x: 100 },
+    poses: [
+      // Dead hang
+      { headX: 100, headY: 52, torsoEndX: 100, torsoEndY: 122,
+        leftElbowX: 92, leftElbowY: 32, leftHandX: 99, leftHandY: 12,
+        rightElbowX: 108, rightElbowY: 32, rightHandX: 101, rightHandY: 12,
+        leftKneeX: 94, leftKneeY: 150, leftFootX: 96, leftFootY: 176,
+        rightKneeX: 106, rightKneeY: 150, rightFootX: 104, rightFootY: 176 },
+      // Chin above hands
+      { headX: 100, headY: 24, torsoEndX: 100, torsoEndY: 94,
+        leftElbowX: 90, leftElbowY: 46, leftHandX: 99, leftHandY: 12,
+        rightElbowX: 110, rightElbowY: 46, rightHandX: 101, rightHandY: 12,
+        leftKneeX: 94, leftKneeY: 122, leftFootX: 96, leftFootY: 150,
+        rightKneeX: 106, rightKneeY: 122, rightFootX: 104, rightFootY: 150 },
+    ],
+    segments: [
+      { duration: 800, easing: 'easeInOutCubic', holdEnd: 100 },
+      { duration: 700, easing: 'easeOut', holdEnd: 200 },
+    ],
+  },
+
+  // === POLE ASSISTED PISTOL SQUAT (holds pole, one leg) ===
+  poleAssistedPistol: {
+    id: 'poleAssistedPistol',
+    duration: 3000,
+    prop: { kind: 'pole', x: 100 },
+    poses: [
+      // Standing on one leg — hands on pole
+      { headX: 100, headY: 30, torsoEndX: 100, torsoEndY: 100,
+        leftElbowX: 92, leftElbowY: 58, leftHandX: 98, leftHandY: 54,
+        rightElbowX: 108, rightElbowY: 58, rightHandX: 102, rightHandY: 54,
+        leftKneeX: 95, leftKneeY: 135, leftFootX: 93, leftFootY: 170,
+        rightKneeX: 120, rightKneeY: 115, rightFootX: 140, rightFootY: 110 },
+      // Deep single-leg squat — free leg forward
+      { headX: 100, headY: 60, torsoEndX: 100, torsoEndY: 118,
+        leftElbowX: 90, leftElbowY: 74, leftHandX: 98, leftHandY: 54,
+        rightElbowX: 110, rightElbowY: 74, rightHandX: 102, rightHandY: 54,
+        leftKneeX: 76, leftKneeY: 140, leftFootX: 72, leftFootY: 170,
+        rightKneeX: 122, rightKneeY: 104, rightFootX: 150, rightFootY: 96 },
+    ],
+    segments: [
+      { duration: 900, easing: 'easeOut', holdEnd: 150 },
+      { duration: 800, easing: 'easeInOutCubic', holdEnd: 150 },
+    ],
+  },
+
+  // === POLE KNEE RAISE (hang on pole, knees up) ===
+  poleKneeRaise: {
+    id: 'poleKneeRaise',
+    duration: 2400,
+    prop: { kind: 'pole', x: 100 },
+    poses: [
+      // Hanging, legs down
+      { headX: 100, headY: 48, torsoEndX: 100, torsoEndY: 118,
+        leftElbowX: 92, leftElbowY: 30, leftHandX: 99, leftHandY: 12,
+        rightElbowX: 108, rightElbowY: 30, rightHandX: 101, rightHandY: 12,
+        leftKneeX: 94, leftKneeY: 148, leftFootX: 96, leftFootY: 176,
+        rightKneeX: 106, rightKneeY: 148, rightFootX: 104, rightFootY: 176 },
+      // Knees raised to chest
+      { headX: 100, headY: 48, torsoEndX: 100, torsoEndY: 118,
+        leftElbowX: 92, leftElbowY: 30, leftHandX: 99, leftHandY: 12,
+        rightElbowX: 108, rightElbowY: 30, rightHandX: 101, rightHandY: 12,
+        leftKneeX: 90, leftKneeY: 100, leftFootX: 88, leftFootY: 126,
+        rightKneeX: 110, rightKneeY: 100, rightFootX: 112, rightFootY: 126 },
+    ],
+    segments: [
+      { duration: 600, easing: 'easeOut', holdEnd: 120 },
+      { duration: 650, easing: 'easeIn', holdEnd: 120 },
+    ],
+  },
+
+  // === POLE SUPPORT HOLD (L-sit grip, isometric) ===
+  poleSupportHold: {
+    id: 'poleSupportHold',
+    duration: 3000,
+    prop: { kind: 'pole', x: 100 },
+    poses: [
+      { headX: 100, headY: 32, torsoEndX: 100, torsoEndY: 102,
+        leftElbowX: 96, leftElbowY: 78, leftHandX: 99, leftHandY: 100,
+        rightElbowX: 104, rightElbowY: 78, rightHandX: 101, rightHandY: 100,
+        leftKneeX: 78, leftKneeY: 92, leftFootX: 52, leftFootY: 90,
+        rightKneeX: 82, rightKneeY: 98, rightFootX: 56, rightFootY: 96 },
+      { headX: 100, headY: 30, torsoEndX: 100, torsoEndY: 100,
+        leftElbowX: 96, leftElbowY: 76, leftHandX: 99, leftHandY: 100,
+        rightElbowX: 104, rightElbowY: 76, rightHandX: 101, rightHandY: 100,
+        leftKneeX: 78, leftKneeY: 90, leftFootX: 52, leftFootY: 88,
+        rightKneeX: 82, rightKneeY: 96, rightFootX: 56, rightFootY: 94 },
+    ],
+    secondaryMotion: [
+      { amplitude: 2, frequency: 0.25, joints: ['headY', 'torsoEndY'] },
+    ],
+  },
+
+  // === POLE PLANK (feet braced at pole base, isometric) ===
+  polePlank: {
+    id: 'polePlank',
+    duration: 3000,
+    prop: { kind: 'pole', x: 150 },
+    poses: [
+      { headX: 40, headY: 100, torsoEndX: 120, torsoEndY: 105,
+        leftElbowX: 50, leftElbowY: 115, leftHandX: 40, leftHandY: 130,
+        rightElbowX: 95, rightElbowY: 115, rightHandX: 85, rightHandY: 130,
+        leftKneeX: 130, leftKneeY: 108, leftFootX: 150, leftFootY: 112,
+        rightKneeX: 132, rightKneeY: 112, rightFootX: 150, rightFootY: 116 },
+      { headX: 40, headY: 98, torsoEndX: 120, torsoEndY: 103,
+        leftElbowX: 50, leftElbowY: 113, leftHandX: 40, leftHandY: 130,
+        rightElbowX: 95, rightElbowY: 113, rightHandX: 85, rightHandY: 130,
+        leftKneeX: 130, leftKneeY: 106, leftFootX: 150, leftFootY: 110,
+        rightKneeX: 132, rightKneeY: 110, rightFootX: 150, rightFootY: 114 },
+    ],
+    secondaryMotion: [
+      { amplitude: 3, frequency: 0.25, joints: ['headY', 'torsoEndY'] },
+    ],
+  },
+
+  // === POLE LEG SWEEP (stand beside pole, sweep one leg) ===
+  poleLegSweep: {
+    id: 'poleLegSweep',
+    duration: 2400,
+    prop: { kind: 'pole', x: 70 },
+    poses: [
+      // Sweeping leg back
+      { headX: 100, headY: 30, torsoEndX: 100, torsoEndY: 100,
+        leftElbowX: 84, leftElbowY: 58, leftHandX: 72, leftHandY: 60,
+        rightElbowX: 120, rightElbowY: 60, rightHandX: 130, rightHandY: 55,
+        leftKneeX: 95, leftKneeY: 135, leftFootX: 93, leftFootY: 170,
+        rightKneeX: 118, rightKneeY: 132, rightFootX: 132, rightFootY: 165 },
+      // Leg swept up and across the front
+      { headX: 100, headY: 30, torsoEndX: 100, torsoEndY: 100,
+        leftElbowX: 84, leftElbowY: 58, leftHandX: 72, leftHandY: 60,
+        rightElbowX: 120, rightElbowY: 60, rightHandX: 130, rightHandY: 55,
+        leftKneeX: 95, leftKneeY: 135, leftFootX: 93, leftFootY: 170,
+        rightKneeX: 110, rightKneeY: 118, rightFootX: 122, rightFootY: 92 },
+    ],
+    segments: [
+      { duration: 700, easing: 'easeInOut', holdEnd: 120 },
+      { duration: 700, easing: 'easeInOut', holdEnd: 120 },
+    ],
+  },
+
+  // === POLE SQUAT HOLD (deep squat holding pole, isometric) ===
+  poleSquatHold: {
+    id: 'poleSquatHold',
+    duration: 3000,
+    prop: { kind: 'pole', x: 100 },
+    poses: [
+      { headX: 100, headY: 58, torsoEndX: 100, torsoEndY: 116,
+        leftElbowX: 90, leftElbowY: 74, leftHandX: 98, leftHandY: 56,
+        rightElbowX: 110, rightElbowY: 74, rightHandX: 102, rightHandY: 56,
+        leftKneeX: 74, leftKneeY: 135, leftFootX: 78, leftFootY: 170,
+        rightKneeX: 126, rightKneeY: 135, rightFootX: 122, rightFootY: 170 },
+      { headX: 100, headY: 56, torsoEndX: 100, torsoEndY: 114,
+        leftElbowX: 90, leftElbowY: 72, leftHandX: 98, leftHandY: 56,
+        rightElbowX: 110, rightElbowY: 72, rightHandX: 102, rightHandY: 56,
+        leftKneeX: 74, leftKneeY: 133, leftFootX: 78, leftFootY: 170,
+        rightKneeX: 126, rightKneeY: 133, rightFootX: 122, rightFootY: 170 },
+    ],
+    secondaryMotion: [
+      { amplitude: 2, frequency: 0.25, joints: ['headY', 'torsoEndY'] },
+    ],
+  },
 }

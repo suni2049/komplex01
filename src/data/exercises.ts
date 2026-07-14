@@ -1949,7 +1949,7 @@ export const exercises: Exercise[] = [
     difficulty: 'intermediate',
     equipment: ['kettlebell'],
     repScheme: { type: 'reps', defaultReps: 15 },
-    animationId: 'hipHinge',
+    animationId: 'kettlebellSwing',
   },
   {
     id: 'kettlebell-goblet-squat',
@@ -1967,7 +1967,7 @@ export const exercises: Exercise[] = [
     difficulty: 'beginner',
     equipment: ['kettlebell'],
     repScheme: { type: 'reps', defaultReps: 12 },
-    animationId: 'squat',
+    animationId: 'kettlebellGobletSquat',
   },
   {
     id: 'kettlebell-deadlift',
@@ -1985,7 +1985,7 @@ export const exercises: Exercise[] = [
     difficulty: 'beginner',
     equipment: ['kettlebell'],
     repScheme: { type: 'reps', defaultReps: 12 },
-    animationId: 'hipHinge',
+    animationId: 'kettlebellDeadlift',
   },
   {
     id: 'kettlebell-overhead-press',
@@ -2003,7 +2003,7 @@ export const exercises: Exercise[] = [
     difficulty: 'intermediate',
     equipment: ['kettlebell'],
     repScheme: { type: 'each-side', defaultReps: 8 },
-    animationId: 'bandPress',
+    animationId: 'kettlebellPress',
   },
   {
     id: 'kettlebell-row',
@@ -2021,7 +2021,7 @@ export const exercises: Exercise[] = [
     difficulty: 'beginner',
     equipment: ['kettlebell'],
     repScheme: { type: 'each-side', defaultReps: 10 },
-    animationId: 'row',
+    animationId: 'kettlebellRow',
   },
   {
     id: 'kettlebell-goblet-lunge',
@@ -2039,7 +2039,7 @@ export const exercises: Exercise[] = [
     difficulty: 'intermediate',
     equipment: ['kettlebell'],
     repScheme: { type: 'each-side', defaultReps: 10 },
-    animationId: 'lunge',
+    animationId: 'kettlebellGobletLunge',
   },
   {
     id: 'kettlebell-halo',
@@ -2057,7 +2057,7 @@ export const exercises: Exercise[] = [
     difficulty: 'beginner',
     equipment: ['kettlebell'],
     repScheme: { type: 'reps', defaultReps: 10 },
-    animationId: 'armCircle',
+    animationId: 'kettlebellHalo',
     restModifier: 0.7,
   },
   {
@@ -2076,7 +2076,7 @@ export const exercises: Exercise[] = [
     difficulty: 'intermediate',
     equipment: ['kettlebell'],
     repScheme: { type: 'reps', defaultReps: 16 },
-    animationId: 'russianTwist',
+    animationId: 'kettlebellRussianTwist',
   },
 
   // ===== POLE (vertical fitness pole) =====
@@ -2096,7 +2096,7 @@ export const exercises: Exercise[] = [
     difficulty: 'advanced',
     equipment: ['pole'],
     repScheme: { type: 'reps', defaultReps: 4 },
-    animationId: 'pullup',
+    animationId: 'poleClimb',
   },
   {
     id: 'pole-pull-up',
@@ -2114,7 +2114,7 @@ export const exercises: Exercise[] = [
     difficulty: 'intermediate',
     equipment: ['pole'],
     repScheme: { type: 'reps', defaultReps: 8 },
-    animationId: 'pullup',
+    animationId: 'polePullUp',
   },
   {
     id: 'pole-assisted-pistol-squat',
@@ -2132,7 +2132,7 @@ export const exercises: Exercise[] = [
     difficulty: 'intermediate',
     equipment: ['pole'],
     repScheme: { type: 'each-side', defaultReps: 6 },
-    animationId: 'pistolSquat',
+    animationId: 'poleAssistedPistol',
   },
   {
     id: 'pole-knee-raise',
@@ -2150,7 +2150,7 @@ export const exercises: Exercise[] = [
     difficulty: 'intermediate',
     equipment: ['pole'],
     repScheme: { type: 'reps', defaultReps: 12 },
-    animationId: 'legRaise',
+    animationId: 'poleKneeRaise',
   },
   {
     id: 'pole-support-hold',
@@ -2168,7 +2168,7 @@ export const exercises: Exercise[] = [
     difficulty: 'advanced',
     equipment: ['pole'],
     repScheme: { type: 'timed', defaultSeconds: 20 },
-    animationId: 'lSit',
+    animationId: 'poleSupportHold',
   },
   {
     id: 'pole-plank',
@@ -2186,7 +2186,7 @@ export const exercises: Exercise[] = [
     difficulty: 'beginner',
     equipment: ['pole'],
     repScheme: { type: 'timed', defaultSeconds: 40 },
-    animationId: 'plank',
+    animationId: 'polePlank',
   },
   {
     id: 'pole-leg-sweep',
@@ -2204,7 +2204,7 @@ export const exercises: Exercise[] = [
     difficulty: 'beginner',
     equipment: ['pole'],
     repScheme: { type: 'each-side', defaultReps: 10 },
-    animationId: 'legSwing',
+    animationId: 'poleLegSweep',
     restModifier: 0.7,
   },
   {
@@ -2223,7 +2223,7 @@ export const exercises: Exercise[] = [
     difficulty: 'beginner',
     equipment: ['pole'],
     repScheme: { type: 'timed', defaultSeconds: 30 },
-    animationId: 'wallSit',
+    animationId: 'poleSquatHold',
   },
 ]
 
