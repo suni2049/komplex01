@@ -1,11 +1,11 @@
-import type { Pose, ExerciseAnimation } from '../../types/animation'
+import type { Pose, ExerciseAnimation, PropSpec } from '../../types/animation'
 
 // --- Figure proportions (viewBox units, 200x200) ---
 
 export const HEAD_R = 11.5
-export const NECK_W = 7
-export const SHOULDER_HALF = 12.5
-export const HIP_HALF = 9
+export const NECK_W = 6
+export const SHOULDER_HALF = 10
+export const HIP_HALF = 7
 export const UPPER_ARM_W = 7.5
 export const FOREARM_W = 6.5
 export const THIGH_W = 8.5
@@ -65,7 +65,8 @@ function torsoPath(a: TorsoAnchors): string {
   const hL = add(a.pelvis, scale(a.perp, hh))
   const hR = sub(a.pelvis, scale(a.perp, hh))
   const mid = scale(add(a.neck, a.pelvis), 0.5)
-  const bow = scale(a.perp, ((sh + hh) / 2 + 1.5))
+  // Slight taper toward a waist between shoulders and hips (no belly bulge)
+  const bow = scale(a.perp, ((sh + hh) / 2) * 0.72)
   const cL = add(mid, bow)
   const cR = sub(mid, bow)
   return (
@@ -150,17 +151,50 @@ export type LimbKey =
   | 'leftThigh' | 'leftCalf'
   | 'rightThigh' | 'rightCalf'
 
+// --- Equipment prop geometry ---
+
+export interface PropGeometry {
+  pole?: Line
+  // kettlebell: handle line from grip to the bell, plus the bell circle
+  kettlebell?: { handle: Line; cx: number; cy: number; r: number }
+}
+
+const KB_BELL_R = 6.5
+
+function computeProp(pose: Pose, prop?: PropSpec): PropGeometry | undefined {
+  if (!prop) return undefined
+  if (prop.kind === 'pole') {
+    // A floor-standing pole spans the full frame height, independent of the
+    // figure's pose, so hanging/L-sit moves still show a full pole.
+    const x = r2(prop.x)
+    return { pole: { x1: x, y1: 4, x2: x, y2: 188 } }
+  }
+  // kettlebell — track the gripping hand(s)
+  let gx: number, gy: number
+  if (prop.grip === 'left') { gx = pose.leftHandX; gy = pose.leftHandY }
+  else if (prop.grip === 'right') { gx = pose.rightHandX; gy = pose.rightHandY }
+  else { gx = (pose.leftHandX + pose.rightHandX) / 2; gy = (pose.leftHandY + pose.rightHandY) / 2 }
+  const bellCy = gy + KB_BELL_R + 3
+  return {
+    kettlebell: {
+      handle: { x1: r2(gx), y1: r2(gy), x2: r2(gx), y2: r2(gy + 4) },
+      cx: r2(gx), cy: r2(bellCy), r: KB_BELL_R,
+    },
+  }
+}
+
 export interface FigureGeometry {
   head: { cx: number; cy: number }
   neck: Line
   torsoD: string
   limbs: Record<LimbKey, Line>
   shadow: ShadowGeometry
+  prop?: PropGeometry
 }
 
 const line = (a: Vec, b: Vec): Line => ({ x1: r2(a.x), y1: r2(a.y), x2: r2(b.x), y2: r2(b.y) })
 
-export function buildFigureGeometry(pose: Pose, groundY: number): FigureGeometry {
+export function buildFigureGeometry(pose: Pose, groundY: number, prop?: PropSpec): FigureGeometry {
   const a = torsoAnchors(pose)
   const shoulderHalf = (SHOULDER_HALF - UPPER_ARM_W / 2) * a.widthScale
   const hipHalf = (HIP_HALF - THIGH_W / 2) * a.widthScale
@@ -190,5 +224,6 @@ export function buildFigureGeometry(pose: Pose, groundY: number): FigureGeometry
       rightCalf: line(rightKnee, { x: pose.rightFootX, y: pose.rightFootY }),
     },
     shadow: computeShadow(pose, groundY),
+    prop: computeProp(pose, prop),
   }
 }

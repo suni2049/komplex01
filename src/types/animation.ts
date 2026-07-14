@@ -26,10 +26,18 @@ export interface SecondaryMotion {
   joints: (keyof Pose)[]
 }
 
+// Equipment prop drawn alongside the figure, in its own color.
+// - pole: a fixed vertical bar at x, from top of frame to the ground
+// - kettlebell: a bell that tracks the gripping hand(s)
+export type PropSpec =
+  | { kind: 'pole'; x: number }
+  | { kind: 'kettlebell'; grip: 'left' | 'right' | 'both' }
+
 export interface ExerciseAnimation {
   id: string
   poses: Pose[]
   duration: number
   segments?: SegmentConfig[]
   secondaryMotion?: SecondaryMotion[]
+  prop?: PropSpec
 }

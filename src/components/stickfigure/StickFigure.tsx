@@ -10,6 +10,13 @@ import { easingFns, getSegmentInfo, interpolatePose, applyIdleMotion } from './m
 
 const TRANSITION_MS = 400
 
+// Equipment prop colors — deliberately distinct from the figure's accent color
+// so the pole and kettlebell read as separate objects in any theme.
+const POLE_COLOR = '#38bdf8'      // sky blue — metal pole
+const KETTLEBELL_COLOR = '#f59e0b' // amber — cast bell
+const POLE_W = 5
+const KB_HANDLE_W = 3.5
+
 const EXTREMITY_KEYS = [
   'leftHandX', 'leftHandY', 'rightHandX', 'rightHandY',
   'leftFootX', 'leftFootY', 'rightFootX', 'rightFootY',
@@ -52,6 +59,15 @@ function applyGeometry(els: ElementMap, geo: FigureGeometry) {
     sh.setAttribute('rx', String(geo.shadow.rx))
     sh.setAttribute('ry', String(geo.shadow.ry))
     sh.setAttribute('opacity', String(geo.shadow.opacity))
+  }
+  const p = geo.prop
+  if (els.pole && p?.pole) setLine(els.pole, p.pole)
+  if (p?.kettlebell) {
+    if (els.kbHandle) setLine(els.kbHandle, p.kettlebell.handle)
+    if (els.kbBell) {
+      els.kbBell.setAttribute('cx', String(p.kettlebell.cx))
+      els.kbBell.setAttribute('cy', String(p.kettlebell.cy))
+    }
   }
 }
 
@@ -146,7 +162,7 @@ function StickFigure({ animationId, playing = true, size = 160, color = 'var(--c
       followRef.current = next
 
       lastFrameRef.current = { animId: animationId, pose, groundY: gY }
-      applyGeometry(els.current, buildFigureGeometry(pose, gY))
+      applyGeometry(els.current, buildFigureGeometry(pose, gY, anim.prop))
       raf = requestAnimationFrame(tick)
     }
 
@@ -160,13 +176,13 @@ function StickFigure({ animationId, playing = true, size = 160, color = 'var(--c
   useLayoutEffect(() => {
     const last = lastFrameRef.current
     if (last && (last.animId === animationId || playing)) {
-      applyGeometry(els.current, buildFigureGeometry(last.pose, last.groundY))
+      applyGeometry(els.current, buildFigureGeometry(last.pose, last.groundY, anim?.prop))
     }
   })
 
   if (!anim) return null
 
-  const geo = buildFigureGeometry(anim.poses[0], getGroundY(anim))
+  const geo = buildFigureGeometry(anim.poses[0], getGroundY(anim), anim.prop)
 
   const setEl = (key: string) => (el: SVGElement | null) => { els.current[key] = el }
   const farColor = `color-mix(in srgb, ${color} 70%, #000)`
@@ -208,6 +224,17 @@ function StickFigure({ animationId, playing = true, size = 160, color = 'var(--c
         fill={`url(#${gradId})`}
       />
 
+      {/* Pole prop — behind the figure so hands grip in front of it */}
+      {anim.prop?.kind === 'pole' && geo.prop?.pole && (
+        <line
+          ref={setEl('pole')}
+          {...geo.prop.pole}
+          stroke={POLE_COLOR}
+          strokeWidth={POLE_W}
+          strokeLinecap="round"
+        />
+      )}
+
       {/* Far limbs (darker, behind torso) */}
       {limbLines(FAR_LIMBS, farColor)}
 
@@ -220,6 +247,26 @@ function StickFigure({ animationId, playing = true, size = 160, color = 'var(--c
 
       {/* Near limbs */}
       {limbLines(NEAR_LIMBS, color)}
+
+      {/* Kettlebell prop — in front, tracks the gripping hand(s) */}
+      {anim.prop?.kind === 'kettlebell' && geo.prop?.kettlebell && (
+        <>
+          <line
+            ref={setEl('kbHandle')}
+            {...geo.prop.kettlebell.handle}
+            stroke={`color-mix(in srgb, ${KETTLEBELL_COLOR} 70%, #000)`}
+            strokeWidth={KB_HANDLE_W}
+            strokeLinecap="round"
+          />
+          <circle
+            ref={setEl('kbBell')}
+            cx={geo.prop.kettlebell.cx}
+            cy={geo.prop.kettlebell.cy}
+            r={geo.prop.kettlebell.r}
+            fill={KETTLEBELL_COLOR}
+          />
+        </>
+      )}
     </svg>
   )
 }
